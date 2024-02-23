@@ -37,7 +37,7 @@ router.get(
 
 router.patch(
   "/:roomId",
-  controller.putRoom
+  controller.patchRoom
 )
 
 router.delete(

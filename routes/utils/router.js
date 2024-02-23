@@ -1,6 +1,6 @@
 const asyncHandler = require("express-async-handler")
 const multer = require("multer")
-const { Types } = require("mongoose")
+const { ObjectId } = require("mongoose").Types
 
 
 function setObjectIdDocument(
@@ -13,7 +13,7 @@ function setObjectIdDocument(
     let objectId
 
     try {
-      objectId = new Types.ObjectId(req[reqObject][param])
+      objectId = ObjectId(req[reqObject][param])
     } catch (error) {
       const err = new Error("Invalid ObjectId format")
       err.status = 400
