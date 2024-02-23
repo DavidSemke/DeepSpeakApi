@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const controller = require("../controllers/messages")
 const Message = require('../models/message')
-const utils = require('./utils/router')
+const upload = require('../utils/upload')
+const objectIdUtils = require('./utils/objectId')
 
 
 router.use((req, res, next) => {
@@ -12,7 +13,7 @@ router.use((req, res, next) => {
   
 router.use(
     "/:messageId",
-    utils.setObjectIdDocument(
+    objectIdUtils.setObjectIdDocument(
         "params",
         "messageId",
         Message
@@ -26,6 +27,7 @@ router.get(
 
 router.post(
   "/",
+  upload.none(),
   controller.postMessage
 )
 

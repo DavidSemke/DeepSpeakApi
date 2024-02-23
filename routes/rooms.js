@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const controller = require("../controllers/rooms")
 const Room = require('../models/room')
-const utils = require('./utils/router')
+const upload = require('../utils/upload')
+const objectIdUtils = require('./utils/objectId')
 
 
 router.use((req, res, next) => {
@@ -12,7 +13,7 @@ router.use((req, res, next) => {
 
 router.use(
   "/:roomId",
-  utils.setObjectIdDocument(
+  objectIdUtils.setObjectIdDocument(
     "params",
     "roomId",
     Room,
@@ -27,6 +28,7 @@ router.get(
 
 router.post(
   "/",
+  upload.none(),
   controller.postRoom
 )
 
@@ -37,6 +39,7 @@ router.get(
 
 router.patch(
   "/:roomId",
+  upload.none(),
   controller.patchRoom
 )
 

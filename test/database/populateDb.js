@@ -1,14 +1,4 @@
-require("dotenv").config()
-const bcrypt = require("bcryptjs")
-const User = require("../../models/user")
-const BlogPost = require("../../models/blogPost")
-const Comment = require("../../models/comment")
-const ReactionCounter = require("../../models/reactionCounter")
-const Reaction = require("../../models/reaction")
 const fileData = require("./documents/fileData")
-const userData = require("./documents/userData")
-const blogPostData = require("./documents/blogPostData")
-const commentData = require("./documents/commentData")
 
 const users = []
 const blogPosts = []

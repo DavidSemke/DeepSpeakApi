@@ -1,5 +1,4 @@
 const asyncHandler = require("express-async-handler")
-const multer = require("multer")
 const { ObjectId } = require("mongoose").Types
 
 
@@ -42,21 +41,8 @@ function setObjectIdDocument(
   })
 }
 
-function handleMulterError(err, req, res, next) {
-  if (!err) {
-    return next()
-  }
 
-  if (err instanceof multer.MulterError) {
-    req.fileLimitError = err
-
-    return next()
-  }
-
-  next(err)
-}
 
 module.exports = {
   setObjectIdDocument,
-  handleMulterError,
 }
