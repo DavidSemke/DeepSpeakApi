@@ -4,15 +4,18 @@
  * Module dependencies.
  */
 
-const app = require('../app');
+const App = require('../appFactory');
 const debug = require('debug')('deepspeak:server');
 const http = require('http');
+
+
+const app = App()
 
 /**
  * Get port from environment and store in Express.
  */
 
-const port = normalizePort(process.env.PORT || '3000');
+const port = normalizePort(process.env.PORT);
 app.set('port', port);
 
 /**
