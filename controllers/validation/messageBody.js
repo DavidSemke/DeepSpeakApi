@@ -1,26 +1,20 @@
 const { body } = require("express-validator")
 const errMsg = require("./errorMessage")
+const userBody = require('./userBody')
+const consts = require('../../models/constants/message')
 
-const contentLength = { min: 1, max: 300 }
-const authorLength = { min: 6, max: 30 }
 
 const message = [
+  ...userBody.user,
+  
   body("content")
     .isString()
     .withMessage("Content must be a string.")
     .trim()
-    .isLength(contentLength)
+    .isLength(consts.CONTENT_LENGTH)
     .withMessage((value) => {
-      return errMsg.invalidLength("content", value, contentLength)
+      return errMsg.invalidLength("content", value, consts.CONTENT_LENGTH)
     }),
-  body("author")
-    .isString()
-    .withMessage("Author must be a string.")
-    .trim()
-    .isLength(authorLength)
-    .withMessage((value) => {
-      return errMsg.invalidLength("author", value, authorLength)
-  }),
 ]
 
 module.exports = {

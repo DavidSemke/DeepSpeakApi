@@ -7,6 +7,8 @@ const express = require("express")
 const cookieParser = require("cookie-parser")
 const logger = require("morgan")
 const mongoSanitize = require("express-mongo-sanitize")
+const Room = require("./models/room")
+const objectIdUtils = require("./routes/utils/objectId")
 require("./mongoConfig")
 
 
@@ -40,11 +42,27 @@ function App() {
   app.use(mongoSanitize())
 
   /* Route Setup */
+  app.use((req, res, next) => {
+    req.documents = {}
+    next()
+  })
+  app.use(
+    "/rooms/:roomId",
+    objectIdUtils.setObjectIdDocument(
+      "params",
+      "roomId",
+      Room,
+      ["messages"],
+    )
+  )
+
   const roomsRouter = require("./routes/rooms")
-  const messagesRouter = require("./routes/rooms")
+  const messagesRouter = require("./routes/messages")
+  const usersRouter = require("./routes/users")
 
   app.use("/rooms", roomsRouter)
   app.use("/rooms/:roomId/messages", messagesRouter)
+  app.use("/rooms/:roomId/users", usersRouter)
 
   /* Error Handling */
   app.use(function (req, res, next) {

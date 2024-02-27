@@ -25,15 +25,27 @@ exports.postMessage = [
             return
         }
 
-        const content = req.body['content']
-        const author = req.body['author']
-
         const window = new JSDOM("").window
         const DOMPurify = createDOMPurify(window)
+        const content = DOMPurify.sanitize(req.body['content'])
+        const user = DOMPurify.sanitize(req.body['user'])
+
+        const room = req.documents.roomId
+        const userNotInRoom = !room.users.includes(user)
+
+        if (userNotInRoom) {
+            const err = new Error(
+                'User does not exist in room'
+            )
+            err.status = 403
+
+            return next(err)
+        }
+
         const data = {
-            content: DOMPurify.sanitize(content),
+            content,
+            user,
             create_date: Date.now(),
-            author: DOMPurify.sanitize(author),
         }
 
         await Message.create(data)

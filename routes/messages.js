@@ -6,11 +6,6 @@ const upload = require('../utils/upload')
 const objectIdUtils = require('./utils/objectId')
 
 
-router.use((req, res, next) => {
-  req.documents = {}
-  next()
-})
-  
 router.use(
     "/:messageId",
     objectIdUtils.setObjectIdDocument(
