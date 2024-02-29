@@ -6,7 +6,7 @@ const consts = require('../../models/constants/user')
 const user = [
   body("user")
     .isString()
-    .withMessage("User must be a string.")
+    .withMessage("User must be a string")
     .trim()
     .isLength(consts.USER_LENGTH)
     .withMessage((value) => {

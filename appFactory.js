@@ -7,8 +7,8 @@ const express = require("express")
 const cookieParser = require("cookie-parser")
 const logger = require("morgan")
 const mongoSanitize = require("express-mongo-sanitize")
-const Room = require("./models/room")
-const objectIdUtils = require("./routes/utils/objectId")
+const Room = require('./models/room')
+const objectIdUtils = require('./routes/utils/objectId')
 require("./mongoConfig")
 
 
@@ -46,23 +46,30 @@ function App() {
     req.documents = {}
     next()
   })
-  app.use(
-    "/rooms/:roomId",
-    objectIdUtils.setObjectIdDocument(
-      "params",
-      "roomId",
-      Room,
-      ["messages"],
-    )
-  )
 
   const roomsRouter = require("./routes/rooms")
   const messagesRouter = require("./routes/messages")
   const usersRouter = require("./routes/users")
+  const setNoPopulateRoom = objectIdUtils
+    .setObjectIdDocument(
+      "params",
+      "roomId",
+      Room
+    )
 
+  // Make sure less specific routes come after more specific
+  // E.g. /rooms must come after all of its extensions
+  app.use(
+    "/rooms/:roomId/messages",
+    setNoPopulateRoom,
+    messagesRouter
+  )
+  app.use(
+    "/rooms/:roomId/users",
+    setNoPopulateRoom,
+    usersRouter
+  )
   app.use("/rooms", roomsRouter)
-  app.use("/rooms/:roomId/messages", messagesRouter)
-  app.use("/rooms/:roomId/users", usersRouter)
 
   /* Error Handling */
   app.use(function (req, res, next) {
@@ -70,7 +77,7 @@ function App() {
   })
 
   app.use(function (err, req, res, next) {
-    const errors = [err]
+    const errors = [{ message: err.message }]
     res.status(err.status || 500).json({ errors })
   })
 

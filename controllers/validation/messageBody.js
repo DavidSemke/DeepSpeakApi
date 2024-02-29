@@ -9,7 +9,7 @@ const message = [
   
   body("content")
     .isString()
-    .withMessage("Content must be a string.")
+    .withMessage("Content must be a string")
     .trim()
     .isLength(consts.CONTENT_LENGTH)
     .withMessage((value) => {

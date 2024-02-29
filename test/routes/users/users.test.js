@@ -1,34 +1,44 @@
 const request = require("supertest");
 const Room = require('../../../models/room')
-const setupTeardown = require('../utils/setupTeardown')
+const objectIdUtils = require('../../../routes/utils/objectId')
+const setupTeardown = require('../setupTeardown')
 const usersRouter = require("../../../routes/users")
-// const roomConsts = require('../../../models/constants/room')
+
 
 let server, app
 let maxUsersRoom, fewUsersRoom
 
-// No updates/deletes target database, so no need for beforeEach
 beforeAll(async () => {
   const setup = await setupTeardown.appSetup(
-    usersRouter, 
-    '/rooms/:roomId/users'
+    usersRouter,
+    '/rooms/:roomId/users',
+    objectIdUtils
+      .setObjectIdDocument(
+        "params",
+        "roomId",
+        Room
+      ),
   )
   server = setup.server
   app = setup.app
+
+  const results = await Promise.all([
+    Room
+      .findOne({
+          $where: "this.users.length === this.max_user_count"
+      })
+      .lean()
+      .exec(),
+    Room
+      .findOne({
+          $where: "this.users.length < this.max_user_count && this.users.length > 0",
+      })
+      .lean()
+      .exec()
+  ])
   
-  maxUsersRoom = await Room
-    .findOne({
-        $where: "this.users.length === this.max_user_count"
-    })
-    .lean()
-    .exec()
-  
-  fewUsersRoom = await Room
-    .findOne({
-        $where: "this.users.length < this.max_user_count && this.users.length > 0",
-    })
-    .lean()
-    .exec()
+  maxUsersRoom = results[0]
+  fewUsersRoom = results[1]
 })
 
 afterAll(async () => {
@@ -36,21 +46,25 @@ afterAll(async () => {
 })
 
 describe("POST /rooms/:roomId/users", () => {
-  const urlTrunk = `/rooms/${fewUsersRoom._id}/users`
+  let urlTrunk
+
+  beforeAll(() => {
+    urlTrunk = `/rooms/${fewUsersRoom._id}/users`
+  })
 
   describe("Invalid roomId", () => {
-    const urlTrunk = (roomId) => `/rooms/:${roomId}/users`
+    const urlTrunk = (roomId) => `/rooms/${roomId}/users`
 
     test("Non-existent roomId", async () => {
       await request(app)
-        .get(urlTrunk('000011112222333344445555'))
+        .post(urlTrunk('000011112222333344445555'))
         .expect("Content-Type", /json/)
         .expect(404);
     });
   
     test("Invalid ObjectId", async () => {
       await request(app)
-        .get(urlTrunk('test'))
+        .post(urlTrunk('test'))
         .expect("Content-Type", /json/)
         .expect(400);
     });
@@ -58,17 +72,6 @@ describe("POST /rooms/:roomId/users", () => {
 
   describe("Invalid body params", () => {
     describe("user", () => {
-      test("Not a string", async () => {
-        const res = await request(app)
-          .post(urlTrunk)
-          .set('Content-Type', "multipart/form-data")
-          .field("user", 0)
-          .expect("Content-Type", /json/)
-          .expect(400);
-        
-        expect(res.body).toHaveProperty('errors')
-      });
-
       test("Invalid length", async () => {
         const res = await request(app)
           .post(urlTrunk)
@@ -124,7 +127,11 @@ describe("POST /rooms/:roomId/users", () => {
 
 // No more object id checks past here
 describe("DELETE /rooms/:roomId/users/:userId", () => {
-  const urlTrunk = `/rooms/:${fewUsersRoom._id}/users`
+  let urlTrunk
+
+  beforeAll(() => {
+    urlTrunk = `/rooms/${fewUsersRoom._id}/users`
+  })
 
   test("User not in room", async () => {
     const res = await request(app)

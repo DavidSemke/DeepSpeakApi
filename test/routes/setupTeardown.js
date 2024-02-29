@@ -3,9 +3,9 @@ const mongoose = require("mongoose")
 const mongoConfig = require("./mongoConfigTest")
 const appTest = require("./appTest")
 
-async function appSetup(router, routerPath) {
+async function appSetup(router, routerPath, routingMidArray = []) {
   const server = await serverSetup()
-  const app = appTest.create(router, routerPath)
+  const app = appTest.create(router, routerPath, routingMidArray)
 
   return { server, app }
 }

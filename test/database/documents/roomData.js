@@ -3,26 +3,32 @@ const consts = require('../../../models/constants/room')
 
 const inputData = [
   {
-    topic: "Sad world",
+    topic: "Sad gerbil",
   },
   {
-    topic: "Glad world",
+    topic: "Glad squirrel",
   },
   {
-    topic: "Bad world",
+    topic: "Bad hurtle",
   },
   {
-    topic: "Mad world",
+    topic: "Mad turtle",
   },
   {
-    topic: "Fad world",
+    topic: "Fad purple",
   },
   {
-    topic: "Lad world",
+    topic: "Lad circle",
   },
 ]
 
 function getData(messages) {
+  if (messages.length < consts.MESSAGES_LENGTH.max) {
+    throw new Error(
+      'Not enough unique messages to meet max messages length'
+    )
+  }
+
   const baseDate = new Date()
   const completeData = inputData.map((data, index) => {
     const createDate = new Date(baseDate.getTime())
@@ -30,31 +36,14 @@ function getData(messages) {
     const deleteDate = new Date(baseDate.getTime())
     deleteDate.setMinutes(baseDate.getMinutes() + index + 1)
     
-    let messageSlice = []
-
-    // Make final room empty
-    // Full and partially full rooms already exist
-    if (index < inputData.length - 1) {
-      messageSlice = messages.slice(index)
-    }
+    // at least one message to a room (empty room case insignificant)
+    let messageSlice = messages.slice(index % messages.length)
     
     const users = []
     for (const msg of messageSlice) {
       if (!users.includes(msg.user)) {
         users.push(msg.user)
       }
-    }
-
-    // First room has max messages (uses duplicate messages)
-    if (index === 0) {
-      const originals = [...messageSlice]
-      const { max } = consts.MESSAGES_LENGTH
-      
-      while (messageSlice.length < max) {
-        messageSlice.push(...originals)
-      }
-
-      messageSlice = messageSlice.slice(0, max)
     }
 
     return {

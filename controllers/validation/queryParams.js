@@ -1,6 +1,6 @@
 const { query } = require("express-validator")
-const Message = require('../models/message')
-const Room = require('../models/room')
+const Message = require('../../models/message')
+const Room = require('../../models/room')
 
 
 const notStringErrMsg = (param) => {
@@ -27,7 +27,7 @@ function validateSort(model) {
             .isString()
             .withMessage(notStringErrMsg('order'))
             .trim()
-            .custom(({ req }) => {
+            .custom((value, { req }) => {
                 return req.query['order-by'] !== undefined
             })
             .withMessage(`Query param 'order' exists without query param 'order-by'`)
@@ -40,7 +40,7 @@ function validateSort(model) {
 
 function validatePagination() {
     const notOnlyDigitsErrMsg = (param) => {
-        return `Query param '${param}' must be a non-negative number`
+        return `Query param '${param}' must only consist of digits`
     }
     const onlyDigitsRegex = /^\d+$/
 

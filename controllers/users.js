@@ -22,9 +22,8 @@ exports.postUser = [
         const user = DOMPurify.sanitize(req.body['user'])
 
         const room = req.documents.roomId
-        const roomIsFull = room.users.length === room.max_user_count
 
-        if (roomIsFull) {
+        if (room.users.length === room.max_user_count) {
             const err = new Error(
                 'Room cannot accept a new user as it is full'
             )
@@ -33,9 +32,7 @@ exports.postUser = [
             return next(err)
         }
 
-        const userAlreadyExists = room.users.includes(user)
-
-        if (userAlreadyExists) {
+        if (room.users.includes(user)) {
             const err = new Error(
                 'User already exists in room'
             )
@@ -46,35 +43,38 @@ exports.postUser = [
 
         room.users.push(user)
 
-        await Room.findOneAndUpdate(
-            { _id: room._id },
-            { users: room.users}
-        )
+        await Room
+            .findOneAndUpdate(
+                { _id: room._id },
+                { users: room.users}
+            )
+            .lean()
+            .exec()
 
         res.end()
     })
 ]
 
 exports.deleteUser = asyncHandler(async (req, res, next) => {
-    const userToRemove = DOMPurify.sanitize(req.params['userId'])
+    const userToRemove = req.params['userId']
     const room = req.documents.roomId
-    const userNotInRoom = !room.users.includes(userToRemove)
 
-    if (userNotInRoom) {
-        const err = new Error(
-            'User not found'
-        )
+    if (!room.users.includes(userToRemove)) {
+        const err = new Error('User not found')
         err.status = 404
 
         return next(err)
     }
 
-    room.users.filter(user => user !== userToRemove)
+    room.users = room.users.filter(user => user !== userToRemove)
 
-    await Room.findOneAndUpdate(
-        { _id: room._id },
-        { users: room.users}
-    )
+    await Room
+        .findOneAndUpdate(
+            { _id: room._id },
+            { users: room.users}
+        )
+        .lean()
+        .exec()
 
     res.end()
 })

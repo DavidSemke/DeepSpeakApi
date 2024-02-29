@@ -6,14 +6,14 @@ function invalidLength(field, value, constraints) {
   const trunk = `${cappedField} length (${value.length}) must be`
 
   if (minExists && maxExists) {
-    return `${trunk} ${min} to ${max} characters.`
+    return `${trunk} ${min} to ${max} characters`
   } else if (maxExists) {
-    return `${trunk} less than ${max} characters.`
+    return `${trunk} less than ${max} characters`
   } else if (minExists) {
-    return `${trunk} at least ${min} characters.`
+    return `${trunk} at least ${min} characters`
   } else {
     throw new Error(
-      `Neither max nor min length is defined for field '${field}'.`,
+      `Neither max nor min length is defined for field '${field}'`,
     )
   }
 }

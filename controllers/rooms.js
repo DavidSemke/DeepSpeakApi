@@ -28,10 +28,10 @@ exports.postRoom = [
         const topic = req.body['topic']
         const maxUserCount = req.body['max-user-count']
         
-        const createDate = Date.now()
-        const deleteDate = Date.now()
-        // FOR TESTING - SET 1 MIN IN THE FUTURE
-        deleteDate.setMinutes(deleteDate.getMinutes()+1)
+        const createDate = new Date()
+        const deleteDate = new Date(createDate.getTime())
+        // set 5 min in the future - for testing ___________________________________!!!!!!
+        deleteDate.setMinutes(deleteDate.getMinutes() + 5)
 
         const window = new JSDOM("").window
         const DOMPurify = createDOMPurify(window)
@@ -51,5 +51,5 @@ exports.postRoom = [
 ]
 
 exports.getRoom = (req, res, next) => {
-    res.json({ message: req.documents.roomId })
+    res.json({ room: req.documents.roomId })
 }

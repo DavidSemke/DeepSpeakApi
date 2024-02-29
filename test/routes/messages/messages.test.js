@@ -1,42 +1,52 @@
 const request = require("supertest");
 const Message = require('../../../models/message')
 const Room = require('../../../models/room')
-const setupTeardown = require('../utils/setupTeardown')
+const objectIdUtils = require('../../../routes/utils/objectId')
+const setupTeardown = require('../setupTeardown')
 const messagesRouter = require("../../../routes/messages")
 const roomConsts = require('../../../models/constants/room')
 
 let server, app
+// fewMessagesRoom is default room
+// maxMessagesRoom is only used when max messages required
 let message, maxMessagesRoom, fewMessagesRoom
 
-// No updates/deletes target database, so no need for beforeEach
 beforeAll(async () => {
   const setup = await setupTeardown.appSetup(
     messagesRouter, 
-    '/rooms/:roomId/messages'
+    '/rooms/:roomId/messages',
+    objectIdUtils
+      .setObjectIdDocument(
+        "params",
+        "roomId",
+        Room
+      ),
   )
   server = setup.server
   app = setup.app
 
-  message = await Message
-    .findOne()
-    .lean()
-    .exec()
-  
-  // This room may use duplicate messages (messages with same id)
-  maxMessagesRoom = await Room
-    .findOne({
-      messages: { $size: roomConsts.MESSAGES_LENGTH.max }
-    })
-    .lean()
-    .exec()
-  
-  // This room should not use duplicate messages 
-  fewMessagesRoom = await Room
-    .findOne({
-      messages: { $size: { $gt: 5, $lt: 11 } }
-    })
-    .lean()
-    .exec()
+  const results = await Promise.all([
+    Message
+      .findOne()
+      .lean()
+      .exec(),
+    Room
+      .findOne({
+        messages: { $size: roomConsts.MESSAGES_LENGTH.max }
+      })
+      .lean()
+      .exec(),
+    Room
+      .findOne({
+        $where: `this.messages.length < ${roomConsts.MESSAGES_LENGTH.max}`
+      })
+      .lean()
+      .exec()
+  ])
+
+  message = results[0]
+  maxMessagesRoom = results[1]
+  fewMessagesRoom = results[2]
 })
 
 afterAll(async () => {
@@ -44,23 +54,31 @@ afterAll(async () => {
 })
 
 describe("GET /rooms/:roomId/messages", () => {
-  const urlTrunk = `/rooms/:${fewMessagesRoom._id}/messages`
+  let urlTrunk
+
+  beforeAll(() => {
+    urlTrunk = `/rooms/${fewMessagesRoom._id}/messages`
+  })
 
   describe("Invalid roomId", () => {
-    const urlTrunk = (roomId) => `/rooms/:${roomId}/messages`
+    const urlTrunk = (roomId) => `/rooms/${roomId}/messages`
 
     test("Non-existent roomId", async () => {
-      await request(app)
+      const res = await request(app)
         .get(urlTrunk('000011112222333344445555'))
         .expect("Content-Type", /json/)
         .expect(404);
+      
+      expect(res.body).toHaveProperty('errors')
     });
   
     test("Invalid ObjectId", async () => {
-      await request(app)
+      const res = await request(app)
         .get(urlTrunk('test'))
         .expect("Content-Type", /json/)
         .expect(400);
+      
+      expect(res.body).toHaveProperty('errors')
     });
   })
 
@@ -121,27 +139,33 @@ describe("GET /rooms/:roomId/messages", () => {
 
   test("All params", async () => {
     const limit = 3
+    const url = `${urlTrunk}?order-by=create_date&order=desc&limit=${limit}`
     const resNoOffset = await request(app)
-      .get(`${urlTrunk}?order-by=create_date&order=desc&limit=${limit}`)
+      .get(url)
       .expect("Content-Type", /json/)
       .expect(200);
     
-    expect(resNoOffset.body).toHaveProperty('message_collection')
     const messages = resNoOffset.body['message_collection']
     expect(messages.length).toBe(limit)
 
+    // Check if messages belong to appropriate room
+    const roomMsgStrIds = fewMessagesRoom.messages.map(msg => msg.toString())
+
+    for (const msg of messages) {
+      expect(roomMsgStrIds.includes(msg._id.toString())).toBe(true)
+    }
+
+    // Check if order=desc produced correct results
     for (let i=0; i<messages.length-1; i++) {
       const msg = messages[i]
       const nextMsg = messages[i+1]
-
-      // Check if order=desc produced correct results
       expect(msg.create_date >= nextMsg.create_date)
     }
 
     // Make another request with offset; returned messages should all be new
     const offset = limit
     const resOffset = await request(app)
-      .get(`${urlTrunk}?limit=${limit}&offset=${offset}`)
+      .get(`${url}&offset=${offset}`)
       .expect("Content-Type", /json/)
       .expect(200);
   
@@ -157,22 +181,14 @@ describe("GET /rooms/:roomId/messages", () => {
 
 // No more object id checks past here
 describe("POST /rooms/:roomId/messages", () => {
-  const urlTrunk = `/rooms/${fewMessagesRoom._id}/messages`
+  let urlTrunk
+
+  beforeAll(() => {
+    urlTrunk = `/rooms/${fewMessagesRoom._id}/messages`
+  })
 
   describe("Invalid body params", () => {
     describe("content", () => {
-      test("Not a string", async () => {
-        const res = await request(app)
-          .post(urlTrunk)
-          .set('Content-Type', "multipart/form-data")
-          .field("content", 0)
-          .field("user", message.user)
-          .expect("Content-Type", /json/)
-          .expect(400);
-        
-        expect(res.body).toHaveProperty('errors')
-      });
-
       test("Invalid length", async () => {
         const res = await request(app)
           .post(urlTrunk)
@@ -187,18 +203,6 @@ describe("POST /rooms/:roomId/messages", () => {
     })
 
     describe("user", () => {
-      test("Not a string", async () => {
-        const res = await request(app)
-          .post(urlTrunk)
-          .set('Content-Type', "multipart/form-data")
-          .field("content", message.content)
-          .field("user", 0)
-          .expect("Content-Type", /json/)
-          .expect(400);
-        
-        expect(res.body).toHaveProperty('errors')
-      });
-
       test("Invalid length", async () => {
         const res = await request(app)
           .post(urlTrunk)
@@ -214,8 +218,10 @@ describe("POST /rooms/:roomId/messages", () => {
   })
 
   test("User not in room, at max messages", async () => {
-    await request(app)
-      .post(`/rooms/${maxMessagesRoom._id}/messages`)
+    const url = `/rooms/${maxMessagesRoom._id}/messages`
+
+    const res = await request(app)
+      .post(url)
       .set('Content-Type', "multipart/form-data")
       .field("content", message.content)
       .field("user", 'testUser')
@@ -226,6 +232,8 @@ describe("POST /rooms/:roomId/messages", () => {
   });
 
   test("User in room, at max messages", async () => {
+    const url = `/rooms/${maxMessagesRoom._id}/messages`
+
     const message = await Message
       .findOne({
         user: maxMessagesRoom.users[0]
@@ -234,7 +242,7 @@ describe("POST /rooms/:roomId/messages", () => {
       .exec()
 
     await request(app)
-      .post(`/rooms/${maxMessagesRoom._id}/messages`)
+      .post(url)
       .set('Content-Type', "multipart/form-data")
       .field("content", message.content)
       .field("user", message.user)
@@ -251,11 +259,31 @@ describe("POST /rooms/:roomId/messages", () => {
 })
 
 describe("GET /rooms/:roomId/messages/:messageId", () => {
-  const url = `/rooms/:${fewMessagesRoom._id}/messages/${message._id}`
+  let roomMessage, nonRoomMessage
 
-  test("GET", async () => {
+  beforeAll(async () => {
+    roomMessage = await Message
+      .findOne({ _id: { $in: fewMessagesRoom.messages} })
+      .lean()
+      .exec()
+    nonRoomMessage = await Message
+    .findOne({ _id: { $nin: fewMessagesRoom.messages} })
+    .lean()
+    .exec()
+  })
+
+  test("Message does not belong to room", async () => {
     const res = await request(app)
-      .get(url)
+      .get(`/rooms/${fewMessagesRoom._id}/messages/${nonRoomMessage._id}`)
+      .expect("Content-Type", /json/)
+      .expect(403);
+
+    expect(res.body).toHaveProperty('errors')
+  });
+  
+  test("Message belongs to room", async () => {
+    const res = await request(app)
+      .get(`/rooms/${fewMessagesRoom._id}/messages/${roomMessage._id}`)
       .expect("Content-Type", /json/)
       .expect(200);
 

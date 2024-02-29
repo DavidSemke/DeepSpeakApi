@@ -1,48 +1,68 @@
 const asyncHandler = require("express-async-handler")
-const { ObjectId } = require("mongoose").Types
+const { param, body } = require("express-validator")
+const { validationResult } = require("express-validator")
 
 
 function setObjectIdDocument(
   reqObject,
-  param,
+  reqObjectKey,
   model,
   populatePaths = [],
 ) {
-  return asyncHandler(async (req, res, next) => {
-    let objectId
+  let reqObjectValidator
 
-    try {
-      objectId = ObjectId(req[reqObject][param])
-    } catch (error) {
-      const err = new Error("Invalid ObjectId format")
-      err.status = 400
+  if (reqObject === 'params') {
+    reqObjectValidator = param
+  }
+  else if (reqObject === 'body') {
+    reqObjectValidator = body
+  }
+  
+  return [
+    reqObjectValidator(reqObjectKey)
+      .isString()
+      .withMessage('ObjectId must be a string')
+      .trim()
+      .custom((value) => {
+        // Must be a 24-character, lowercase, hexadecimal string
+        hexRegex = /^[a-f\d]{24}$/
+        return hexRegex.test(value)
+      })
+      .withMessage(
+          'Invalid ObjectId format'
+      ),
+    asyncHandler(async (req, res, next) => {
+      const errors = validationResult(req).array()
 
-      return next(err)
-    }
+      if (errors.length) {
+          res.status(400).json({ errors })
+          return
+      }
 
-    const query = model.findById(objectId).lean()
-
-    for (const path of populatePaths) {
-      query.populate(path)
-    }
-
-    const document = await query.exec()
-
-    if (document === null) {
-      const err = new Error("Resource not found")
-      err.status = 404
-
-      return next(err)
-    }
-
-    req.documents[param] = document
-
-    next()
-  })
+      const objectId = req[reqObject][reqObjectKey]
+      const query = model.findById(objectId).lean()
+  
+      for (const path of populatePaths) {
+        query.populate(path)
+      }
+  
+      const document = await query.exec()
+  
+      if (document === null) {
+        const err = new Error("Resource not found")
+        err.status = 404
+  
+        return next(err)
+      }
+  
+      req.documents[reqObjectKey] = document
+  
+      next()
+    })
+  ]
 }
 
 
-
 module.exports = {
-  setObjectIdDocument,
+  setObjectIdDocument
 }

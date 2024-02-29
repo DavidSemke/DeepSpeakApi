@@ -13,11 +13,7 @@ const RoomSchema = new Schema({
     type: [{
         type: Schema.Types.ObjectId,
         ref: 'Message'
-    }],
-    validate: [
-        (val) => val.length <= consts.MESSAGES_LENGTH.max,
-        `{PATH} exceeds the length limit of ${consts.MESSAGES_LENGTH.max}.`
-    ]
+    }]
   },
 })
 

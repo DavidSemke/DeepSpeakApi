@@ -1,4 +1,8 @@
-function findMany(model) {
+const asyncHandler = require("express-async-handler")
+const { validationResult } = require("express-validator")
+
+
+function findMany(model, filter={}) {
     return asyncHandler(async (req, res, next) => {
         const errors = validationResult(req).array()
     
@@ -12,7 +16,7 @@ function findMany(model) {
         const limit = req.query['limit']
         const offset = req.query['offset']
     
-        const query = model.find().lean()
+        const query = model.find(filter).lean()
     
         if (orderBy) {
             query.sort({ [orderBy]: order || 'asc' })
@@ -23,7 +27,7 @@ function findMany(model) {
         }
     
         if (offset) {
-            query.offset(offset)
+            query.skip(offset)
         }
     
         const documents = await query.exec()
