@@ -1,6 +1,5 @@
 const mongoose = require("mongoose")
 const Schema = mongoose.Schema
-const consts = require('./constants/room')
 
 
 const RoomSchema = new Schema({

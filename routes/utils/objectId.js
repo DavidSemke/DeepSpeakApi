@@ -25,7 +25,7 @@ function setObjectIdDocument(
       .trim()
       .custom((value) => {
         // Must be a 24-character, lowercase, hexadecimal string
-        hexRegex = /^[a-f\d]{24}$/
+        const hexRegex = /^[a-f\d]{24}$/
         return hexRegex.test(value)
       })
       .withMessage(
