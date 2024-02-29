@@ -1,10 +1,10 @@
-const request = require("supertest");
-const Message = require('../../../models/message')
-const Room = require('../../../models/room')
-const objectIdUtils = require('../../../routes/utils/objectId')
-const setupTeardown = require('../setupTeardown')
+const request = require("supertest")
+const Message = require("../../../models/message")
+const Room = require("../../../models/room")
+const objectIdUtils = require("../../../routes/utils/objectId")
+const setupTeardown = require("../setupTeardown")
 const messagesRouter = require("../../../routes/messages")
-const roomConsts = require('../../../models/constants/room')
+const roomConsts = require("../../../models/constants/room")
 
 let server, app
 // fewMessagesRoom is default room
@@ -13,35 +13,25 @@ let message, maxMessagesRoom, fewMessagesRoom
 
 beforeAll(async () => {
   const setup = await setupTeardown.appSetup(
-    messagesRouter, 
-    '/rooms/:roomId/messages',
-    objectIdUtils
-      .setObjectIdDocument(
-        "params",
-        "roomId",
-        Room
-      ),
+    messagesRouter,
+    "/rooms/:roomId/messages",
+    objectIdUtils.setObjectIdDocument("params", "roomId", Room),
   )
   server = setup.server
   app = setup.app
 
   const results = await Promise.all([
-    Message
-      .findOne()
+    Message.findOne().lean().exec(),
+    Room.findOne({
+      messages: { $size: roomConsts.MESSAGES_LENGTH.max },
+    })
       .lean()
       .exec(),
-    Room
-      .findOne({
-        messages: { $size: roomConsts.MESSAGES_LENGTH.max }
-      })
+    Room.findOne({
+      $where: `this.messages.length < ${roomConsts.MESSAGES_LENGTH.max}`,
+    })
       .lean()
       .exec(),
-    Room
-      .findOne({
-        $where: `this.messages.length < ${roomConsts.MESSAGES_LENGTH.max}`
-      })
-      .lean()
-      .exec()
   ])
 
   message = results[0]
@@ -65,21 +55,21 @@ describe("GET /rooms/:roomId/messages", () => {
 
     test("Non-existent roomId", async () => {
       const res = await request(app)
-        .get(urlTrunk('000011112222333344445555'))
+        .get(urlTrunk("000011112222333344445555"))
         .expect("Content-Type", /json/)
-        .expect(404);
-      
-      expect(res.body).toHaveProperty('errors')
-    });
-  
+        .expect(404)
+
+      expect(res.body).toHaveProperty("errors")
+    })
+
     test("Invalid ObjectId", async () => {
       const res = await request(app)
-        .get(urlTrunk('test'))
+        .get(urlTrunk("test"))
         .expect("Content-Type", /json/)
-        .expect(400);
-      
-      expect(res.body).toHaveProperty('errors')
-    });
+        .expect(400)
+
+      expect(res.body).toHaveProperty("errors")
+    })
   })
 
   describe("Invalid query params", () => {
@@ -88,10 +78,10 @@ describe("GET /rooms/:roomId/messages", () => {
         const res = await request(app)
           .get(`${urlTrunk}?order-by=`)
           .expect("Content-Type", /json/)
-          .expect(400);
-        
-        expect(res.body).toHaveProperty('errors')
-      });
+          .expect(400)
+
+        expect(res.body).toHaveProperty("errors")
+      })
     })
 
     describe("Order", () => {
@@ -99,30 +89,30 @@ describe("GET /rooms/:roomId/messages", () => {
         const res = await request(app)
           .get(`${urlTrunk}?order=test`)
           .expect("Content-Type", /json/)
-          .expect(400);
-        
-        expect(res.body).toHaveProperty('errors')
-      });
+          .expect(400)
+
+        expect(res.body).toHaveProperty("errors")
+      })
 
       test("Exists without order-by", async () => {
         const res = await request(app)
           .get(`${urlTrunk}?order=asc`)
           .expect("Content-Type", /json/)
-          .expect(400);
-        
-        expect(res.body).toHaveProperty('errors')
-      });
+          .expect(400)
+
+        expect(res.body).toHaveProperty("errors")
+      })
     })
-    
+
     describe("Limit", () => {
       test("Includes non-digits", async () => {
         const res = await request(app)
           .get(`${urlTrunk}?limit=-1`)
           .expect("Content-Type", /json/)
-          .expect(400);
-        
-        expect(res.body).toHaveProperty('errors')
-      });
+          .expect(400)
+
+        expect(res.body).toHaveProperty("errors")
+      })
     })
 
     describe("Offset", () => {
@@ -130,10 +120,10 @@ describe("GET /rooms/:roomId/messages", () => {
         const res = await request(app)
           .get(`${urlTrunk}?offset=-1`)
           .expect("Content-Type", /json/)
-          .expect(400);
-        
-        expect(res.body).toHaveProperty('errors')
-      });
+          .expect(400)
+
+        expect(res.body).toHaveProperty("errors")
+      })
     })
   })
 
@@ -143,22 +133,22 @@ describe("GET /rooms/:roomId/messages", () => {
     const resNoOffset = await request(app)
       .get(url)
       .expect("Content-Type", /json/)
-      .expect(200);
-    
-    const messages = resNoOffset.body['message_collection']
+      .expect(200)
+
+    const messages = resNoOffset.body["message_collection"]
     expect(messages.length).toBe(limit)
 
     // Check if messages belong to appropriate room
-    const roomMsgStrIds = fewMessagesRoom.messages.map(msg => msg.toString())
+    const roomMsgStrIds = fewMessagesRoom.messages.map((msg) => msg.toString())
 
     for (const msg of messages) {
       expect(roomMsgStrIds.includes(msg._id.toString())).toBe(true)
     }
 
     // Check if order=desc produced correct results
-    for (let i=0; i<messages.length-1; i++) {
+    for (let i = 0; i < messages.length - 1; i++) {
       const msg = messages[i]
-      const nextMsg = messages[i+1]
+      const nextMsg = messages[i + 1]
       expect(msg.create_date >= nextMsg.create_date)
     }
 
@@ -167,16 +157,16 @@ describe("GET /rooms/:roomId/messages", () => {
     const resOffset = await request(app)
       .get(`${url}&offset=${offset}`)
       .expect("Content-Type", /json/)
-      .expect(200);
-  
-    const newMessages = resOffset.body['message_collection']
+      .expect(200)
+
+    const newMessages = resOffset.body["message_collection"]
 
     for (const newMsg of newMessages) {
       for (const oldMsg of messages) {
         expect(oldMsg).not.toEqual(newMsg)
       }
     }
-  });
+  })
 })
 
 // No more object id checks past here
@@ -192,28 +182,28 @@ describe("POST /rooms/:roomId/messages", () => {
       test("Invalid length", async () => {
         const res = await request(app)
           .post(urlTrunk)
-          .set('Content-Type', "multipart/form-data")
-          .field("content", '')
+          .set("Content-Type", "multipart/form-data")
+          .field("content", "")
           .field("user", message.user)
           .expect("Content-Type", /json/)
-          .expect(400);
-        
-        expect(res.body).toHaveProperty('errors')
-      });
+          .expect(400)
+
+        expect(res.body).toHaveProperty("errors")
+      })
     })
 
     describe("user", () => {
       test("Invalid length", async () => {
         const res = await request(app)
           .post(urlTrunk)
-          .set('Content-Type', "multipart/form-data")
+          .set("Content-Type", "multipart/form-data")
           .field("content", message.content)
-          .field("user", '')
+          .field("user", "")
           .expect("Content-Type", /json/)
-          .expect(400);
-        
-        expect(res.body).toHaveProperty('errors')
-      });
+          .expect(400)
+
+        expect(res.body).toHaveProperty("errors")
+      })
     })
   })
 
@@ -222,71 +212,69 @@ describe("POST /rooms/:roomId/messages", () => {
 
     const res = await request(app)
       .post(url)
-      .set('Content-Type', "multipart/form-data")
+      .set("Content-Type", "multipart/form-data")
       .field("content", message.content)
-      .field("user", 'testUser')
+      .field("user", "testUser")
       .expect("Content-Type", /json/)
-      .expect(403);
-    
-    expect(res.body).toHaveProperty('errors')
-  });
+      .expect(403)
+
+    expect(res.body).toHaveProperty("errors")
+  })
 
   test("User in room, at max messages", async () => {
     const url = `/rooms/${maxMessagesRoom._id}/messages`
 
-    const message = await Message
-      .findOne({
-        user: maxMessagesRoom.users[0]
-      })
+    const message = await Message.findOne({
+      user: maxMessagesRoom.users[0],
+    })
       .lean()
       .exec()
 
     await request(app)
       .post(url)
-      .set('Content-Type', "multipart/form-data")
+      .set("Content-Type", "multipart/form-data")
       .field("content", message.content)
       .field("user", message.user)
-      .expect(200);
+      .expect(200)
 
-    const room = await Room
-      .findById(maxMessagesRoom._id)
-      .lean()
-      .exec()
-    
+    const room = await Room.findById(maxMessagesRoom._id).lean().exec()
+
     // Total messages should be capped at max
     expect(room.messages.length).toBe(roomConsts.MESSAGES_LENGTH.max)
-  });
+  })
 })
 
 describe("GET /rooms/:roomId/messages/:messageId", () => {
   let roomMessage, nonRoomMessage
 
   beforeAll(async () => {
-    roomMessage = await Message
-      .findOne({ _id: { $in: fewMessagesRoom.messages} })
+    roomMessage = await Message.findOne({
+      _id: { $in: fewMessagesRoom.messages },
+    })
       .lean()
       .exec()
-    nonRoomMessage = await Message
-    .findOne({ _id: { $nin: fewMessagesRoom.messages} })
-    .lean()
-    .exec()
+    nonRoomMessage = await Message.findOne({
+      _id: { $nin: fewMessagesRoom.messages },
+    })
+      .lean()
+      .exec()
   })
 
   test("Message does not belong to room", async () => {
     const res = await request(app)
       .get(`/rooms/${fewMessagesRoom._id}/messages/${nonRoomMessage._id}`)
       .expect("Content-Type", /json/)
-      .expect(403);
+      .expect(403)
 
-    expect(res.body).toHaveProperty('errors')
-  });
-  
+    expect(res.body).toHaveProperty("errors")
+  })
+
   test("Message belongs to room", async () => {
     const res = await request(app)
       .get(`/rooms/${fewMessagesRoom._id}/messages/${roomMessage._id}`)
       .expect("Content-Type", /json/)
-      .expect(200);
+      .expect(200)
 
-    expect(res.body).toHaveProperty('message')
-  });
+    expect(res.body).toHaveProperty("message")
+  })
 })

@@ -1,5 +1,4 @@
-const consts = require('../../../models/constants/room')
-
+const consts = require("../../../models/constants/room")
 
 const inputData = [
   {
@@ -24,9 +23,7 @@ const inputData = [
 
 function getData(messages) {
   if (messages.length < consts.MESSAGES_LENGTH.max) {
-    throw new Error(
-      'Not enough unique messages to meet max messages length'
-    )
+    throw new Error("Not enough unique messages to meet max messages length")
   }
 
   const baseDate = new Date()
@@ -35,10 +32,10 @@ function getData(messages) {
     createDate.setMinutes(baseDate.getMinutes() + index)
     const deleteDate = new Date(baseDate.getTime())
     deleteDate.setMinutes(baseDate.getMinutes() + index + 1)
-    
+
     // at least one message to a room (empty room case insignificant)
     let messageSlice = messages.slice(index % messages.length)
-    
+
     const users = []
     for (const msg of messageSlice) {
       if (!users.includes(msg.user)) {
@@ -52,7 +49,7 @@ function getData(messages) {
       delete_date: deleteDate,
       max_user_count: Math.max(users.length + (index % 2), 2),
       users,
-      messages: messageSlice
+      messages: messageSlice,
     }
   })
 

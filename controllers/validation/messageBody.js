@@ -1,12 +1,11 @@
 const { body } = require("express-validator")
 const errMsg = require("./errorMessage")
-const userBody = require('./userBody')
-const consts = require('../../models/constants/message')
-
+const userBody = require("./userBody")
+const consts = require("../../models/constants/message")
 
 const message = [
   ...userBody.user,
-  
+
   body("content")
     .isString()
     .withMessage("Content must be a string")

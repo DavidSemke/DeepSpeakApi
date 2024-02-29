@@ -1,7 +1,6 @@
 const { body } = require("express-validator")
 const errMsg = require("./errorMessage")
-const consts = require('../../models/constants/room')
-
+const consts = require("../../models/constants/room")
 
 const postRoom = [
   body("topic")
@@ -24,12 +23,9 @@ const postRoom = [
     .withMessage(() => {
       const { min, max } = consts.MAX_USER_COUNT_LENGTH
       return `Max user count must be in range [${min}, ${max}]`
-    }
-      
-    )
+    }),
 ]
 
-
 module.exports = {
-  postRoom
+  postRoom,
 }

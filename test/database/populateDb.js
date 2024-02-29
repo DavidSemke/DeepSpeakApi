@@ -1,8 +1,7 @@
-const Room = require('../../models/room')
-const Message = require('../../models/message')
-const messageData = require('./documents/messageData')
-const roomData = require('./documents/roomData')
-
+const Room = require("../../models/room")
+const Message = require("../../models/message")
+const messageData = require("./documents/messageData")
+const roomData = require("./documents/roomData")
 
 const rooms = []
 const messages = []
@@ -31,7 +30,7 @@ async function createMessages(messageData) {
   await Promise.all(
     messageData.map((data, index) => {
       return messageCreate(index, data)
-    })
+    }),
   )
 }
 
@@ -39,11 +38,10 @@ async function createRooms(roomData) {
   await Promise.all(
     roomData.map((data, index) => {
       return roomCreate(index, data)
-    })
+    }),
   )
 }
 
-
 module.exports = {
-  populate
+  populate,
 }

@@ -1,7 +1,6 @@
 const { body } = require("express-validator")
 const errMsg = require("./errorMessage")
-const consts = require('../../models/constants/user')
-
+const consts = require("../../models/constants/user")
 
 const user = [
   body("user")
@@ -11,7 +10,7 @@ const user = [
     .isLength(consts.USER_LENGTH)
     .withMessage((value) => {
       return errMsg.invalidLength("user", value, consts.USER_LENGTH)
-  }),
+    }),
 ]
 
 module.exports = {

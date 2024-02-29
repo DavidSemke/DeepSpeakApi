@@ -7,10 +7,9 @@ const express = require("express")
 const cookieParser = require("cookie-parser")
 const logger = require("morgan")
 const mongoSanitize = require("express-mongo-sanitize")
-const Room = require('./models/room')
-const objectIdUtils = require('./routes/utils/objectId')
+const Room = require("./models/room")
+const objectIdUtils = require("./routes/utils/objectId")
 require("./mongoConfig")
-
 
 const isProduction = process.env.NODE_ENV === "production"
 
@@ -20,7 +19,7 @@ function App() {
   if (isProduction) {
     /* Security Setup */
     app.use(helmet())
-         
+
     /* Rate limiting */
     app.use(
       // 20 requests per minute
@@ -50,25 +49,16 @@ function App() {
   const roomsRouter = require("./routes/rooms")
   const messagesRouter = require("./routes/messages")
   const usersRouter = require("./routes/users")
-  const setNoPopulateRoom = objectIdUtils
-    .setObjectIdDocument(
-      "params",
-      "roomId",
-      Room
-    )
+  const setNoPopulateRoom = objectIdUtils.setObjectIdDocument(
+    "params",
+    "roomId",
+    Room,
+  )
 
   // Make sure less specific routes come after more specific
   // E.g. /rooms must come after all of its extensions
-  app.use(
-    "/rooms/:roomId/messages",
-    setNoPopulateRoom,
-    messagesRouter
-  )
-  app.use(
-    "/rooms/:roomId/users",
-    setNoPopulateRoom,
-    usersRouter
-  )
+  app.use("/rooms/:roomId/messages", setNoPopulateRoom, messagesRouter)
+  app.use("/rooms/:roomId/users", setNoPopulateRoom, usersRouter)
   app.use("/rooms", roomsRouter)
 
   /* Error Handling */

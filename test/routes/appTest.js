@@ -2,7 +2,6 @@ require("dotenv").config()
 const express = require("express")
 const createError = require("http-errors")
 
-
 function create(router, routerPath, routingMidArray = []) {
   const app = express()
 

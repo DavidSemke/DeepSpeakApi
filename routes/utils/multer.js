@@ -1,7 +1,6 @@
 const multer = require("multer")
 const path = require("path")
 
-
 const upload = multer({
   limits: {
     parts: 20,
@@ -26,23 +25,21 @@ const upload = multer({
   },
 })
 
-
 function handleMulterError(err, req, res, next) {
-    if (!err) {
-      return next()
-    }
-  
-    if (err instanceof multer.MulterError) {
-      req.fileLimitError = err
-  
-      return next()
-    }
-  
-    next(err)
+  if (!err) {
+    return next()
   }
 
+  if (err instanceof multer.MulterError) {
+    req.fileLimitError = err
+
+    return next()
+  }
+
+  next(err)
+}
 
 module.exports = {
-    upload,
-    handleMulterError,
+  upload,
+  handleMulterError,
 }

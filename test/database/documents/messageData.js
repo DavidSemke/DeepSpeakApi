@@ -21,16 +21,16 @@ const inputData = [
 
 function getData() {
   const baseDate = new Date()
-  const baseUsername = 'tim'
+  const baseUsername = "tim"
   const completeData = inputData.map((data, index) => {
     const createDate = new Date(baseDate.getTime())
     createDate.setMinutes(baseDate.getMinutes() + index + 1)
-    const username = baseUsername + index.toString().padStart(3, '0')
+    const username = baseUsername + index.toString().padStart(3, "0")
 
     return {
       ...data,
       create_date: createDate,
-      user: username
+      user: username,
     }
   })
 
