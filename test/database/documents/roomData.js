@@ -29,11 +29,10 @@ function getData(messages) {
   const baseDate = new Date()
   const completeData = inputData.map((data, index) => {
     const createDate = new Date(baseDate.getTime())
-    createDate.setMinutes(baseDate.getMinutes() + index)
     const deleteDate = new Date(baseDate.getTime())
-    deleteDate.setMinutes(baseDate.getMinutes() + index + 1)
+    deleteDate.setHours(baseDate.getHours() + 24)
 
-    // at least one message to a room (empty room case insignificant)
+    // At least one message to a room (empty room case insignificant)
     let messageSlice = messages.slice(index % messages.length)
 
     const users = []

@@ -29,8 +29,8 @@ exports.postRoom = [
 
     const createDate = new Date()
     const deleteDate = new Date(createDate.getTime())
-    // set 5 min in the future - for testing ___________________________________!!!!!!
-    deleteDate.setMinutes(deleteDate.getMinutes() + 5)
+    // Set time to live to 24 hours
+    deleteDate.setHours(deleteDate.getHours() + 24)
 
     const window = new JSDOM("").window
     const DOMPurify = createDOMPurify(window)
