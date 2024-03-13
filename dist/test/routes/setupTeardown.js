@@ -19,7 +19,7 @@ const appTest_1 = __importDefault(require("./appTest"));
 function appSetup(router, routerPath, routingMidArray = []) {
     return __awaiter(this, void 0, void 0, function* () {
         const server = yield serverSetup();
-        const app = appTest_1.default.create(router, routerPath, routingMidArray);
+        const app = (0, appTest_1.default)(router, routerPath, routingMidArray);
         return { server, app };
     });
 }

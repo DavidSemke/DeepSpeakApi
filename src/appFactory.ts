@@ -3,7 +3,6 @@ dotenv.config()
 import RateLimit from "express-rate-limit"
 import compression from "compression"
 import helmet from "helmet"
-import createError from "http-errors"
 import express, { Application } from "express"
 import cookieParser from "cookie-parser"
 import logger from "morgan"
@@ -61,7 +60,10 @@ function App(): Application {
 
   /* Error Handling */
   app.use(function (req, res, next) {
-    next(createError(404))
+    const err = new Error('Resource not found')
+    err.status = 404
+
+    next(err)
   })
 
   app.use(function (
@@ -70,8 +72,16 @@ function App(): Application {
     res: Response,
     next: NextFunction,
   ): void {
-    const errors = [{ message: err.message }]
-    res.status(err.status || 500).json({ errors })
+    const status = err.status || 500
+    let msg = 'Internal Server Error'
+    
+    if (status !== 500) {
+      msg = err.message
+    }
+
+    const errors = [{ message: msg }]
+    
+    res.status(status).json({ errors })
   })
 
   return app

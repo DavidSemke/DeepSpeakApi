@@ -7,6 +7,7 @@ const RoomSchema = new Schema<RoomType>({
   delete_date: { type: Date, required: true },
   max_user_count: { type: Number, required: true },
   users: { type: [String], required: true },
+  deleted_users: { type: [String], required: true },
   messages: {
     type: [
       {

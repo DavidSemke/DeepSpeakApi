@@ -40,7 +40,8 @@ function getData(messages: HydratedDocument<MessageType>[]): RoomType[] {
     const users: string[] = []
     for (const msg of messageSlice) {
       if (!users.includes(msg.user)) {
-        users.push(msg.user)
+        // Add index to ensure each room has unique users
+        users.push(msg.user + index)
       }
     }
 
@@ -50,6 +51,7 @@ function getData(messages: HydratedDocument<MessageType>[]): RoomType[] {
       delete_date: deleteDate,
       max_user_count: Math.max(users.length + (index % 2), 2),
       users,
+      deleted_users: ['deletedUser' + index],
       messages: messageSlice.map((msg) => msg._id),
     }
   })

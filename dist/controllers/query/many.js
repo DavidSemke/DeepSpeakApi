@@ -24,11 +24,11 @@ function findMany(model, filter = {}) {
         const limit = Number(req.query["limit"]);
         const offset = Number(req.query["offset"]);
         const query = model.find(filter).lean();
-        if (typeof orderBy === 'string') {
+        if (typeof orderBy === "string") {
             const order = req.query["order"];
             let sortStr = orderBy;
-            if (order === 'desc') {
-                sortStr = '-' + orderBy;
+            if (order === "desc") {
+                sortStr = "-" + orderBy;
             }
             query.sort(sortStr);
         }

@@ -1,11 +1,8 @@
 import { body } from "express-validator"
 import { invalidLength } from "./errorMessage"
-import { user } from "./userBody"
 import consts from "../../models/constants/message"
 
 const message = [
-  ...user,
-
   body("content")
     .isString()
     .withMessage("Content must be a string")

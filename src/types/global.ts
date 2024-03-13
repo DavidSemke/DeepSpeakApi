@@ -4,7 +4,13 @@ import { FlattenMaps, Types } from "mongoose"
 declare global {
   namespace Express {
     interface Request {
-      documents: any
+      documents: {
+        [key: string]: any
+      }
+      user: {
+        username: string,
+        roomId: string
+      }
       fileTypeError: boolean
       fileLimitError: MulterError
     }

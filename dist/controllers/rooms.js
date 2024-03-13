@@ -34,19 +34,19 @@ exports.postRoom = [
             res.status(400).json({ errors });
             return;
         }
-        const topic = req.body["topic"];
-        const maxUserCount = req.body["max-user-count"];
+        const window = new jsdom_1.JSDOM("").window;
+        const DOMPurify = (0, dompurify_1.default)(window);
+        const topic = DOMPurify.sanitize(req.body["topic"]);
+        const maxUserCount = DOMPurify.sanitize(req.body["max-user-count"]);
         const createDate = new Date();
         const deleteDate = new Date(createDate.getTime());
         // Set time to live to 24 hours
         deleteDate.setHours(deleteDate.getHours() + 24);
-        const window = new jsdom_1.JSDOM("").window;
-        const DOMPurify = (0, dompurify_1.default)(window);
         const data = {
-            topic: DOMPurify.sanitize(topic),
+            topic,
             create_date: createDate,
             delete_date: deleteDate,
-            max_user_count: DOMPurify.sanitize(maxUserCount),
+            max_user_count: Number(maxUserCount),
             users: [],
             messages: [],
         };
@@ -61,5 +61,5 @@ exports.getRoom = getRoom;
 exports.default = {
     getManyRooms: exports.getManyRooms,
     postRoom: exports.postRoom,
-    getRoom
+    getRoom,
 };

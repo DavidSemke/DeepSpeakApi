@@ -8,7 +8,6 @@ dotenv_1.default.config();
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const compression_1 = __importDefault(require("compression"));
 const helmet_1 = __importDefault(require("helmet"));
-const http_errors_1 = __importDefault(require("http-errors"));
 const express_1 = __importDefault(require("express"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const morgan_1 = __importDefault(require("morgan"));
@@ -54,11 +53,18 @@ function App() {
     app.use("/rooms", rooms_1.default);
     /* Error Handling */
     app.use(function (req, res, next) {
-        next((0, http_errors_1.default)(404));
+        const err = new Error('Resource not found');
+        err.status = 404;
+        next(err);
     });
     app.use(function (err, req, res, next) {
-        const errors = [{ message: err.message }];
-        res.status(err.status || 500).json({ errors });
+        const status = err.status || 500;
+        let msg = 'Internal Server Error';
+        if (status !== 500) {
+            msg = err.message;
+        }
+        const errors = [{ message: msg }];
+        res.status(status).json({ errors });
     });
     return app;
 }

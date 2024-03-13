@@ -34,16 +34,8 @@ export const postMessage = [
     const window = new JSDOM("").window
     const DOMPurify = createDOMPurify(window)
     const content = DOMPurify.sanitize(req.body["content"])
-    const user = DOMPurify.sanitize(req.body["user"])
 
     const room = req.documents.roomId
-
-    if (!room.users.includes(user)) {
-      const err = new Error("User does not exist in room")
-      err.status = 403
-
-      return next(err)
-    }
 
     // Remove oldest message if at message capacity
     if (room.messages.length === roomConsts.MESSAGES_LENGTH.max) {
@@ -52,7 +44,7 @@ export const postMessage = [
 
     const data = {
       content,
-      user,
+      user: req.user.username,
       create_date: Date.now(),
     }
 

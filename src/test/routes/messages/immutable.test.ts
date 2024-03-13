@@ -1,18 +1,18 @@
 import request from "supertest"
 import { Application } from "express"
 import { MongoMemoryServer } from "mongodb-memory-server"
-import { RoomType, MessageType } from "../../../types/model"
+import { RoomType, MessageType, UserType } from "../../../types/model"
 import Message from "../../../models/message"
 import Room from "../../../models/room"
 import { setObjectIdDocument } from "../../../routes/utils/objectId"
 import setupTeardown from "../setupTeardown"
 import messagesRouter from "../../../routes/messages"
 import roomConsts from "../../../models/constants/room"
+import { generateAuthToken } from "../../../utils/auth"
 
 let server: MongoMemoryServer, app: Application
 // fewMessagesRoom is default room
 // maxMessagesRoom is only used when max messages required
-let message: LeanDocument<MessageType>
 let maxMessagesRoom: LeanDocument<RoomType>
 let fewMessagesRoom: LeanDocument<RoomType>
 
@@ -26,22 +26,22 @@ beforeAll(async () => {
   app = setup.app
 
   const results = await Promise.all([
-    Message.findOne().lean().exec(),
     Room.findOne({
       messages: { $size: roomConsts.MESSAGES_LENGTH.max },
     })
+      .populate('messages')
       .lean()
       .exec(),
     Room.findOne({
       $where: `this.messages.length < ${roomConsts.MESSAGES_LENGTH.max}`,
     })
+      .populate('messages')
       .lean()
       .exec(),
   ])
 
-  message = results[0] as LeanDocument<MessageType>
-  maxMessagesRoom = results[1] as LeanDocument<RoomType>
-  fewMessagesRoom = results[2] as LeanDocument<RoomType>
+  maxMessagesRoom = results[0] as LeanDocument<RoomType>
+  fewMessagesRoom = results[1] as LeanDocument<RoomType>
 })
 
 afterAll(async () => {
@@ -145,7 +145,7 @@ describe("GET /rooms/:roomId/messages", () => {
     expect(messages.length).toBe(limit)
 
     // Check if messages belong to appropriate room
-    const roomMsgStrIds = fewMessagesRoom.messages.map((msg) => msg.toString())
+    const roomMsgStrIds = fewMessagesRoom.messages.map((msg) => msg._id.toString())
 
     for (const msg of messages) {
       expect(roomMsgStrIds.includes(msg._id.toString())).toBe(true)
@@ -177,10 +177,45 @@ describe("GET /rooms/:roomId/messages", () => {
 
 // No more object id checks past here
 describe("POST /rooms/:roomId/messages", () => {
-  let urlTrunk: string
+  type Auth = {
+    user: UserType,
+    token: string
+  }
 
-  beforeAll(() => {
-    urlTrunk = `/rooms/${fewMessagesRoom._id}/messages`
+  let urlTrunk: string
+  let maxMessagesRoomAuth: Auth
+  let fewMessagesRoomAuth: Auth
+  let message: MessageType
+
+  beforeAll(async () => {
+    const defaultRoom = fewMessagesRoom
+    const possibleMessage = defaultRoom.messages[0]
+
+    if (
+      'content' in possibleMessage
+      && 'create_date' in possibleMessage
+      && 'user' in possibleMessage
+    ) {
+      message = possibleMessage as MessageType
+    }
+
+    urlTrunk = `/rooms/${defaultRoom._id}/messages`
+    const fewMessagesRoomUser = {
+      username: fewMessagesRoom.users[0],
+      roomId: fewMessagesRoom._id
+    }
+    fewMessagesRoomAuth = {
+      user: fewMessagesRoomUser,
+      token: generateAuthToken(fewMessagesRoomUser)
+    }
+    const maxMessagesRoomUser = {
+      username: maxMessagesRoom.users[0],
+      roomId: maxMessagesRoom._id
+    }
+    maxMessagesRoomAuth = {
+      user: maxMessagesRoomUser,
+      token: generateAuthToken(maxMessagesRoomUser)
+    }
   })
 
   describe("Invalid body params", () => {
@@ -188,23 +223,9 @@ describe("POST /rooms/:roomId/messages", () => {
       test("Invalid length", async () => {
         const res = await request(app)
           .post(urlTrunk)
+          .set("Authorization", `Bearer ${fewMessagesRoomAuth.token}`)
           .set("Content-Type", "multipart/form-data")
           .field("content", "")
-          .field("user", message.user)
-          .expect("Content-Type", /json/)
-          .expect(400)
-
-        expect(res.body).toHaveProperty("errors")
-      })
-    })
-
-    describe("user", () => {
-      test("Invalid length", async () => {
-        const res = await request(app)
-          .post(urlTrunk)
-          .set("Content-Type", "multipart/form-data")
-          .field("content", message.content)
-          .field("user", "")
           .expect("Content-Type", /json/)
           .expect(400)
 
@@ -213,48 +234,52 @@ describe("POST /rooms/:roomId/messages", () => {
     })
   })
 
-  test("User not in room, at max messages", async () => {
-    const url = `/rooms/${maxMessagesRoom._id}/messages`
-
-    const res = await request(app)
-      .post(url)
-      .set("Content-Type", "multipart/form-data")
-      .field("content", message.content)
-      .field("user", "testUser")
-      .expect("Content-Type", /json/)
-      .expect(403)
-
-    expect(res.body).toHaveProperty("errors")
+  describe('Not authenticated', () => {
+    test("No auth token", async () => {
+      const res = await request(app)
+        .post(urlTrunk)
+        .set("Content-Type", "multipart/form-data")
+        .field("content", message.content)
+        .expect("Content-Type", /json/)
+        .expect(401)
+  
+      expect(res.body).toHaveProperty("errors")
+    })
   })
 
-  test("User in room, at max messages", async () => {
-    const url = `/rooms/${maxMessagesRoom._id}/messages`
-
-    const message = await Message.findOne({
-      user: maxMessagesRoom.users[0],
+  describe('User not in room', () => {
+    test("Authenticated for a different room", async () => {
+      const res = await request(app)
+        .post(urlTrunk)
+        .set("Authorization", `Bearer ${maxMessagesRoomAuth.token}`)
+        .set("Content-Type", "multipart/form-data")
+        .field("content", message.content)
+        .expect("Content-Type", /json/)
+        .expect(403)
+  
+      expect(res.body).toHaveProperty("errors")
     })
-      .lean()
-      .exec()
 
-    if (message === null) {
-      throw new Error("Could not find a message")
-    }
-
-    await request(app)
-      .post(url)
-      .set("Content-Type", "multipart/form-data")
-      .field("content", message.content)
-      .field("user", message.user)
-      .expect(200)
-
-    const room = await Room.findById(maxMessagesRoom._id).lean().exec()
-
-    if (room === null) {
-      throw new Error("maxMessagesRoom not found in db")
-    }
-
-    // Total messages should be capped at max
-    expect(room.messages.length).toBe(roomConsts.MESSAGES_LENGTH.max)
+    test("User deleted", async () => {
+      const user = {
+        username: fewMessagesRoom.deleted_users[0],
+        roomId: fewMessagesRoom._id
+      }
+      const auth = {
+        user,
+        token: generateAuthToken(user)
+      }
+      
+      const res = await request(app)
+        .post(urlTrunk)
+        .set("Authorization", `Bearer ${auth.token}`)
+        .set("Content-Type", "multipart/form-data")
+        .field("content", message.content)
+        .expect("Content-Type", /json/)
+        .expect(403)
+  
+      expect(res.body).toHaveProperty("errors")
+    })
   })
 })
 

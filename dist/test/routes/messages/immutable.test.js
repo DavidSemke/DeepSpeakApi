@@ -154,8 +154,8 @@ describe("GET /rooms/:roomId/messages", () => {
 // No more object id checks past here
 describe("POST /rooms/:roomId/messages", () => {
     let urlTrunk;
-    let maxMessagesToken;
-    let fewMessagesToken;
+    let maxMessagesRoomAuth;
+    let fewMessagesRoomAuth;
     let message;
     beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
         const defaultRoom = fewMessagesRoom;
@@ -166,21 +166,29 @@ describe("POST /rooms/:roomId/messages", () => {
             message = possibleMessage;
         }
         urlTrunk = `/rooms/${defaultRoom._id}/messages`;
-        fewMessagesToken = (0, auth_1.generateAuthToken)({
+        const fewMessagesRoomUser = {
             username: fewMessagesRoom.users[0],
             roomId: fewMessagesRoom._id
-        });
-        maxMessagesToken = (0, auth_1.generateAuthToken)({
+        };
+        fewMessagesRoomAuth = {
+            user: fewMessagesRoomUser,
+            token: (0, auth_1.generateAuthToken)(fewMessagesRoomUser)
+        };
+        const maxMessagesRoomUser = {
             username: maxMessagesRoom.users[0],
             roomId: maxMessagesRoom._id
-        });
+        };
+        maxMessagesRoomAuth = {
+            user: maxMessagesRoomUser,
+            token: (0, auth_1.generateAuthToken)(maxMessagesRoomUser)
+        };
     }));
     describe("Invalid body params", () => {
         describe("content", () => {
             test("Invalid length", () => __awaiter(void 0, void 0, void 0, function* () {
                 const res = yield (0, supertest_1.default)(app)
                     .post(urlTrunk)
-                    .set("Authorization", `Bearer ${fewMessagesToken}`)
+                    .set("Authorization", `Bearer ${fewMessagesRoomAuth.token}`)
                     .set("Content-Type", "multipart/form-data")
                     .field("content", "")
                     .expect("Content-Type", /json/)
@@ -189,8 +197,8 @@ describe("POST /rooms/:roomId/messages", () => {
             }));
         });
     });
-    describe('User in room', () => {
-        test("Not authorized", () => __awaiter(void 0, void 0, void 0, function* () {
+    describe('Not authenticated', () => {
+        test("No auth token", () => __awaiter(void 0, void 0, void 0, function* () {
             const res = yield (0, supertest_1.default)(app)
                 .post(urlTrunk)
                 .set("Content-Type", "multipart/form-data")
@@ -199,31 +207,12 @@ describe("POST /rooms/:roomId/messages", () => {
                 .expect(401);
             expect(res.body).toHaveProperty("errors");
         }));
-        test("At max messages", () => __awaiter(void 0, void 0, void 0, function* () {
-            const url = `/rooms/${maxMessagesRoom._id}/messages`;
-            yield (0, supertest_1.default)(app)
-                .post(url)
-                .set("Authorization", `Bearer ${maxMessagesToken}`)
-                .set("Content-Type", "multipart/form-data")
-                .field("content", message.content)
-                .expect(200);
-            const room = yield room_1.default
-                .findById(maxMessagesRoom._id)
-                .lean()
-                .exec();
-            if (room === null) {
-                throw new Error("maxMessagesRoom not found in db");
-            }
-            // Total messages should be capped at max
-            expect(room.messages.length).toBe(room_2.default.MESSAGES_LENGTH.max);
-        }));
     });
-    // Requirement: maxMessagesRoom has no user equal to a user in fewMessagesRoom
     describe('User not in room', () => {
-        test("Authorized", () => __awaiter(void 0, void 0, void 0, function* () {
+        test("Authenticated for a different room", () => __awaiter(void 0, void 0, void 0, function* () {
             const res = yield (0, supertest_1.default)(app)
                 .post(urlTrunk)
-                .set("Authorization", `Bearer ${maxMessagesToken}`)
+                .set("Authorization", `Bearer ${maxMessagesRoomAuth.token}`)
                 .set("Content-Type", "multipart/form-data")
                 .field("content", message.content)
                 .expect("Content-Type", /json/)

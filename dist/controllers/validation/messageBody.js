@@ -6,10 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.message = void 0;
 const express_validator_1 = require("express-validator");
 const errorMessage_1 = require("./errorMessage");
-const userBody_1 = require("./userBody");
 const message_1 = __importDefault(require("../../models/constants/message"));
 const message = [
-    ...userBody_1.user,
     (0, express_validator_1.body)("content")
         .isString()
         .withMessage("Content must be a string")

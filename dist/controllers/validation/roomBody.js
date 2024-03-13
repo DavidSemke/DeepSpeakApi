@@ -20,7 +20,7 @@ const room = [
         .isNumeric()
         .withMessage("Max user count must be numeric")
         .custom((value) => {
-        const count = parseInt(value);
+        const count = Number(value);
         const { min, max } = room_1.default.MAX_USER_COUNT_LENGTH;
         return count >= min && count <= max;
     })

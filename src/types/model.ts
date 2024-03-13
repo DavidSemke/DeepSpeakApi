@@ -12,7 +12,15 @@ type RoomType = {
   delete_date: Date
   max_user_count: number
   users: string[]
+  deleted_users: string[]
   messages: Types.ObjectId[]
 }
 
-export { MessageType, RoomType }
+// Model does not exist for user
+// This is because users are anonymous
+type UserType = {
+  username: string,
+  roomId: Types.ObjectId
+}
+
+export { MessageType, RoomType, UserType }

@@ -30,6 +30,7 @@ const RoomSchema = new mongoose_1.Schema({
     delete_date: { type: Date, required: true },
     max_user_count: { type: Number, required: true },
     users: { type: [String], required: true },
+    deleted_users: { type: [String], required: true },
     messages: {
         type: [
             {
@@ -37,7 +38,7 @@ const RoomSchema = new mongoose_1.Schema({
                 ref: "Message",
             },
         ],
-        required: true
+        required: true,
     },
 });
 exports.default = mongoose_1.default.model("Room", RoomSchema);

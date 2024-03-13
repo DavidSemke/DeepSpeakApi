@@ -17,6 +17,7 @@ const express_async_handler_1 = __importDefault(require("express-async-handler")
 const express_validator_1 = require("express-validator");
 const dompurify_1 = __importDefault(require("dompurify"));
 const jsdom_1 = require("jsdom");
+const auth_1 = require("../utils/auth");
 const userBody_1 = require("./validation/userBody");
 const room_1 = __importDefault(require("../models/room"));
 exports.postUser = [
@@ -41,28 +42,37 @@ exports.postUser = [
             err.status = 403;
             return next(err);
         }
+        if (room.deleted_users.includes(user)) {
+            const err = new Error("User was deleted from room");
+            err.status = 403;
+            return next(err);
+        }
+        // add user to room
         room.users.push(user);
         yield room_1.default.findOneAndUpdate({ _id: room._id }, { users: room.users })
             .lean()
             .exec();
-        res.end();
+        // generate jwt token
+        const token = (0, auth_1.generateAuthToken)({
+            username: user,
+            roomId: room._id.toString()
+        });
+        res.json(token);
     })),
 ];
 exports.deleteUser = (0, express_async_handler_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const userToRemove = req.params["userId"];
     const room = req.documents.roomId;
-    if (!room.users.includes(userToRemove)) {
-        const err = new Error("User not found");
-        err.status = 404;
-        return next(err);
-    }
-    room.users = room.users.filter((user) => user !== userToRemove);
-    yield room_1.default.findOneAndUpdate({ _id: room._id }, { users: room.users })
+    room.users = room.users.filter((user) => user !== req.user.username);
+    room.deleted_users.push(req.user.username);
+    yield room_1.default.findOneAndUpdate({ _id: room._id }, {
+        users: room.users,
+        deleted_users: room.deleted_users
+    })
         .lean()
         .exec();
     res.end();
 }));
 exports.default = {
     postUser: exports.postUser,
-    deleteUser: exports.deleteUser
+    deleteUser: exports.deleteUser,
 };

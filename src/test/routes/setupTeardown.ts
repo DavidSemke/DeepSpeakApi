@@ -3,7 +3,7 @@ import { MongoMemoryServer } from "mongodb-memory-server"
 import populateDb from "../database/populateDb"
 import mongoose from "mongoose"
 import mongoConfig from "./mongoConfigTest"
-import appTest from "./appTest"
+import App from "./appTest"
 
 type AppSetupReturn = {
   server: MongoMemoryServer
@@ -16,7 +16,7 @@ async function appSetup(
   routingMidArray: RequestHandler[] = [],
 ): Promise<AppSetupReturn> {
   const server = await serverSetup()
-  const app = appTest.create(router, routerPath, routingMidArray)
+  const app = App(router, routerPath, routingMidArray)
 
   return { server, app }
 }

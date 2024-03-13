@@ -6,9 +6,8 @@ import express, {
   RequestHandler,
   Application,
 } from "express"
-import createError from "http-errors"
 
-function create(
+function App(
   router: Router,
   routerPath: string,
   routingMidArray: RequestHandler[] = [],
@@ -28,7 +27,12 @@ function create(
 
   /* Error Handling */
   app.use(function (req, res, next) {
-    next(createError(404))
+    const err = new Error('Resource not found')
+    err.status = 404
+
+    console.log(req.url)
+
+    next(err)
   })
 
   app.use(function (
@@ -36,14 +40,25 @@ function create(
     req: Request,
     res: Response,
     next: NextFunction,
-  ) {
-    const errors = [{ message: err.message }]
-    res.status(err.status || 500).json({ errors })
+  ): void {
+    const status = err.status || 500
+    let msg = 'Internal Server Error'
+    
+    if (status !== 500) {
+      msg = err.message
+    }
+
+    // if (status === 404) {
+    //   console.log(req.url)
+    // }
+
+    const errors = [{ message: msg }]
+    
+    res.status(status).json({ errors })
   })
 
   return app
 }
 
-export default {
-  create,
-}
+export default App
+

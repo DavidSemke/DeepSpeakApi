@@ -42,20 +42,14 @@ exports.postMessage = [
         const window = new jsdom_1.JSDOM("").window;
         const DOMPurify = (0, dompurify_1.default)(window);
         const content = DOMPurify.sanitize(req.body["content"]);
-        const user = DOMPurify.sanitize(req.body["user"]);
         const room = req.documents.roomId;
-        if (!room.users.includes(user)) {
-            const err = new Error("User does not exist in room");
-            err.status = 403;
-            return next(err);
-        }
         // Remove oldest message if at message capacity
         if (room.messages.length === room_2.default.MESSAGES_LENGTH.max) {
             room.messages.shift();
         }
         const data = {
             content,
-            user,
+            user: req.user.username,
             create_date: Date.now(),
         };
         const msg = yield message_1.default.create(data);
@@ -69,8 +63,7 @@ exports.postMessage = [
 function getMessage(req, res, next) {
     const room = req.documents.roomId;
     const message = req.documents.messageId;
-    const roomMsgStrIds = room.messages
-        .map((msg) => msg.toString());
+    const roomMsgStrIds = room.messages.map((msg) => msg.toString());
     if (!roomMsgStrIds.includes(message._id.toString())) {
         const err = new Error("Message does not belong to room");
         err.status = 403;
@@ -82,5 +75,5 @@ exports.getMessage = getMessage;
 exports.default = {
     getManyMessages: exports.getManyMessages,
     postMessage: exports.postMessage,
-    getMessage
+    getMessage,
 };

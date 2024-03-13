@@ -38,10 +38,11 @@ function getData(messages) {
         const users = [];
         for (const msg of messageSlice) {
             if (!users.includes(msg.user)) {
-                users.push(msg.user);
+                // Add index to ensure each room has unique users
+                users.push(msg.user + `${index}`);
             }
         }
-        return Object.assign(Object.assign({}, data), { create_date: createDate, delete_date: deleteDate, max_user_count: Math.max(users.length + (index % 2), 2), users, messages: messageSlice.map(msg => msg._id) });
+        return Object.assign(Object.assign({}, data), { create_date: createDate, delete_date: deleteDate, max_user_count: Math.max(users.length + (index % 2), 2), users, deleted_users: [], messages: messageSlice.map((msg) => msg._id) });
     });
     return completeData;
 }
