@@ -97,6 +97,16 @@ describe("POST /rooms/:roomId/users", () => {
             .expect(403);
         expect(res.body).toHaveProperty("errors");
     }));
+    test("User was deleted from room", () => __awaiter(void 0, void 0, void 0, function* () {
+        const deletedUser = fewUsersRoom.deleted_users[0];
+        const res = yield (0, supertest_1.default)(app)
+            .post(urlTrunk)
+            .set("Content-Type", "multipart/form-data")
+            .field("user", deletedUser)
+            .expect("Content-Type", /json/)
+            .expect(403);
+        expect(res.body).toHaveProperty("errors");
+    }));
 });
 // No more object id checks past here
 describe("DELETE /rooms/:roomId/users/:userId", () => {
@@ -122,23 +132,44 @@ describe("DELETE /rooms/:roomId/users/:userId", () => {
             token: (0, auth_1.generateAuthToken)(fewUsersRoomUser)
         };
     });
-    describe('Not authenticated', () => {
-        test("No auth token", () => __awaiter(void 0, void 0, void 0, function* () {
-            const res = yield (0, supertest_1.default)(app)
-                .delete(urlTrunk + "/test")
-                .expect("Content-Type", /json/)
-                .expect(401);
-            expect(res.body).toHaveProperty("errors");
-        }));
-    });
-    describe('User not in room', () => {
-        test("Authenticated for a different room", () => __awaiter(void 0, void 0, void 0, function* () {
-            const res = yield (0, supertest_1.default)(app)
-                .delete(`${urlTrunk}/${fewUsersRoomAuth.user.username}`)
-                .set("Authorization", `Bearer ${maxUsersRoomAuth.token}`)
-                .expect("Content-Type", /json/)
-                .expect(403);
-            expect(res.body).toHaveProperty("errors");
-        }));
-    });
+    test("Not authenticated", () => __awaiter(void 0, void 0, void 0, function* () {
+        const res = yield (0, supertest_1.default)(app)
+            .delete(urlTrunk + "/test")
+            .expect("Content-Type", /json/)
+            .expect(401);
+        expect(res.body).toHaveProperty("errors");
+    }));
+    test("Authenticated for a different room", () => __awaiter(void 0, void 0, void 0, function* () {
+        const res = yield (0, supertest_1.default)(app)
+            .delete(`${urlTrunk}/${fewUsersRoomAuth.user.username}`)
+            .set("Authorization", `Bearer ${maxUsersRoomAuth.token}`)
+            .expect("Content-Type", /json/)
+            .expect(403);
+        expect(res.body).toHaveProperty("errors");
+    }));
+    test("Deleting user other than self", () => __awaiter(void 0, void 0, void 0, function* () {
+        const res = yield (0, supertest_1.default)(app)
+            .delete(`${urlTrunk}/${fewUsersRoom.users[1]}`)
+            .set("Authorization", `Bearer ${fewUsersRoomAuth.token}`)
+            .expect("Content-Type", /json/)
+            .expect(403);
+        expect(res.body).toHaveProperty("errors");
+    }));
+    test("User deleted from room", () => __awaiter(void 0, void 0, void 0, function* () {
+        const user = {
+            username: fewUsersRoom.deleted_users[0],
+            roomId: fewUsersRoom._id
+        };
+        const auth = {
+            user,
+            token: (0, auth_1.generateAuthToken)(user)
+        };
+        // try to delete self as deleted user
+        const res = yield (0, supertest_1.default)(app)
+            .delete(`${urlTrunk}/${auth.user.username}`)
+            .set("Authorization", `Bearer ${auth.token}`)
+            .expect("Content-Type", /json/)
+            .expect(403);
+        expect(res.body).toHaveProperty("errors");
+    }));
 });

@@ -127,7 +127,7 @@ describe("GET /rooms/:roomId/messages", () => {
         const messages = resNoOffset.body["message_collection"];
         expect(messages.length).toBe(limit);
         // Check if messages belong to appropriate room
-        const roomMsgStrIds = fewMessagesRoom.messages.map((msg) => msg.toString());
+        const roomMsgStrIds = fewMessagesRoom.messages.map((msg) => msg._id.toString());
         for (const msg of messages) {
             expect(roomMsgStrIds.includes(msg._id.toString())).toBe(true);
         }
@@ -213,6 +213,24 @@ describe("POST /rooms/:roomId/messages", () => {
             const res = yield (0, supertest_1.default)(app)
                 .post(urlTrunk)
                 .set("Authorization", `Bearer ${maxMessagesRoomAuth.token}`)
+                .set("Content-Type", "multipart/form-data")
+                .field("content", message.content)
+                .expect("Content-Type", /json/)
+                .expect(403);
+            expect(res.body).toHaveProperty("errors");
+        }));
+        test("User deleted", () => __awaiter(void 0, void 0, void 0, function* () {
+            const user = {
+                username: fewMessagesRoom.deleted_users[0],
+                roomId: fewMessagesRoom._id
+            };
+            const auth = {
+                user,
+                token: (0, auth_1.generateAuthToken)(user)
+            };
+            const res = yield (0, supertest_1.default)(app)
+                .post(urlTrunk)
+                .set("Authorization", `Bearer ${auth.token}`)
                 .set("Content-Type", "multipart/form-data")
                 .field("content", message.content)
                 .expect("Content-Type", /json/)

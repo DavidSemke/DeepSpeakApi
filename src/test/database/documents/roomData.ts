@@ -40,8 +40,7 @@ function getData(messages: HydratedDocument<MessageType>[]): RoomType[] {
     const users: string[] = []
     for (const msg of messageSlice) {
       if (!users.includes(msg.user)) {
-        // Add index to ensure each room has unique users
-        users.push(msg.user + index)
+        users.push(msg.user)
       }
     }
 

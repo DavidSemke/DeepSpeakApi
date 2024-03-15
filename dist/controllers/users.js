@@ -61,9 +61,15 @@ exports.postUser = [
     })),
 ];
 exports.deleteUser = (0, express_async_handler_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.params['userId'];
+    if (req.user.username !== userId) {
+        const err = new Error('User can only delete self');
+        err.status = 403;
+        return next(err);
+    }
     const room = req.documents.roomId;
-    room.users = room.users.filter((user) => user !== req.user.username);
-    room.deleted_users.push(req.user.username);
+    room.users = room.users.filter((user) => user !== userId);
+    room.deleted_users.push(userId);
     yield room_1.default.findOneAndUpdate({ _id: room._id }, {
         users: room.users,
         deleted_users: room.deleted_users

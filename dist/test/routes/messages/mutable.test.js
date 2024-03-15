@@ -80,24 +80,6 @@ describe("POST /rooms/:roomId/messages", () => {
             token: (0, auth_1.generateAuthToken)(maxMessagesRoomUser)
         };
     }));
-    describe('User not in room', () => {
-        test("User deleted", () => __awaiter(void 0, void 0, void 0, function* () {
-            // remove default user
-            yield (0, supertest_1.default)(app)
-                .delete(`${urlTrunk}/${fewMessagesRoomAuth.user.username}`)
-                .set("Authorization", `Bearer ${fewMessagesRoomAuth.token}`)
-                .expect(200);
-            // try to post message as deleted user
-            const res = yield (0, supertest_1.default)(app)
-                .post(urlTrunk)
-                .set("Authorization", `Bearer ${fewMessagesRoomAuth.token}`)
-                .set("Content-Type", "multipart/form-data")
-                .field("content", message.content)
-                .expect("Content-Type", /json/)
-                .expect(403);
-            expect(res.body).toHaveProperty("errors");
-        }));
-    });
     test("Post in room at max messages", () => __awaiter(void 0, void 0, void 0, function* () {
         const url = `/rooms/${maxMessagesRoom._id}/messages`;
         yield (0, supertest_1.default)(app)

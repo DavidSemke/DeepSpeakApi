@@ -18,6 +18,7 @@ function App(router, routerPath, routingMidArray = []) {
     app.use(function (req, res, next) {
         const err = new Error('Resource not found');
         err.status = 404;
+        console.log(req.url);
         next(err);
     });
     app.use(function (err, req, res, next) {
@@ -26,6 +27,9 @@ function App(router, routerPath, routingMidArray = []) {
         if (status !== 500) {
             msg = err.message;
         }
+        // if (status === 404) {
+        //   console.log(req.url)
+        // }
         const errors = [{ message: msg }];
         res.status(status).json({ errors });
     });

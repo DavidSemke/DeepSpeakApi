@@ -27,13 +27,13 @@ function authenticateToken(req, res, next) {
             return next(err);
         }
         const room = req.documents.roomId;
-        if (room.deleted_users.includes(req.user.username)) {
+        if (room.deleted_users.includes(user.username)) {
             const err = new Error(`${errMsgTrunk}; user was deleted from room`);
             err.status = 403;
             return next(err);
         }
-        if (room._id.toString() !== req.user.roomId.toString()
-            || !room.users.includes(req.user.username)) {
+        if (room._id.toString() !== user.roomId.toString()
+            || !room.users.includes(user.username)) {
             const err = new Error(`${errMsgTrunk}; user not in requested room`);
             err.status = 403;
             return next(err);
