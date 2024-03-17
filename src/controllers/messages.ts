@@ -48,14 +48,14 @@ export const postMessage = [
       create_date: Date.now(),
     }
 
-    const msg = await Message.create(data)
-    room.messages.push(msg._id)
+    const message = await Message.create(data)
+    room.messages.push(message._id)
 
     await Room.findOneAndUpdate({ _id: room._id }, { messages: room.messages })
       .lean()
       .exec()
 
-    res.end()
+    res.json({ message: message.toObject() })
   }),
 ]
 

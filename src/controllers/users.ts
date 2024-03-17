@@ -60,7 +60,7 @@ export const postUser = [
       }
     )
 
-    res.json(token)
+    res.json({ token })
   }),
 ]
 

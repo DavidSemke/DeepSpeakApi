@@ -26,12 +26,14 @@ describe("POST /rooms", () => {
 
     // Requirement: All test room topics are unique
     test("All inputs", async () => {
-      await request(app)
+      const res = await request(app)
         .post(urlTrunk)
         .set("Content-Type", "multipart/form-data")
         .field("topic", room.topic)
         .field("max-user-count", room.max_user_count)
         .expect(200)
+
+      expect(res.body).toHaveProperty("room")
   
       const rooms = await Room.find({ topic: room.topic }).lean().exec()
   

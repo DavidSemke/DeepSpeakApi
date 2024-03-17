@@ -44,9 +44,9 @@ export const postRoom = [
       messages: [],
     }
 
-    await Room.create(data)
+    const room = await Room.create(data)
 
-    res.end()
+    res.json({ room: room.toObject() })
   }),
 ]
 

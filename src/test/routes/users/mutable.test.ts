@@ -58,11 +58,13 @@ describe("POST /rooms/:roomId/users", () => {
     test("Valid room state", async () => {
       const user = "timothy9000"
   
-      await request(app)
+      const res = await request(app)
         .post(urlTrunk)
         .set("Content-Type", "multipart/form-data")
         .field("user", user)
         .expect(200)
+      
+      expect(res.body).toHaveProperty("token")
   
       const room = await Room.findById(fewUsersRoom._id).lean().exec()
   

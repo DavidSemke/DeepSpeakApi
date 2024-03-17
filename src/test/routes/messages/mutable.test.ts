@@ -93,12 +93,14 @@ describe("POST /rooms/:roomId/messages", () => {
     test("Post in room at max messages", async () => {
       const url = `/rooms/${maxMessagesRoom._id}/messages`
       
-      await request(app)
+      const res = await request(app)
         .post(url)
         .set("Authorization", `Bearer ${maxMessagesRoomAuth.token}`)
         .set("Content-Type", "multipart/form-data")
         .field("content", message.content)
         .expect(200)
+
+      expect(res.body).toHaveProperty("message")
   
       const room = await Room
         .findById(maxMessagesRoom._id)
