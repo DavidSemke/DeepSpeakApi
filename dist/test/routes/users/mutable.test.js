@@ -53,11 +53,12 @@ describe("POST /rooms/:roomId/users", () => {
     });
     test("Valid room state", () => __awaiter(void 0, void 0, void 0, function* () {
         const user = "timothy9000";
-        yield (0, supertest_1.default)(app)
+        const res = yield (0, supertest_1.default)(app)
             .post(urlTrunk)
             .set("Content-Type", "multipart/form-data")
             .field("user", user)
             .expect(200);
+        expect(res.body).toHaveProperty("token");
         const room = yield room_1.default.findById(fewUsersRoom._id).lean().exec();
         if (room === null) {
             throw new Error("fewUsersRoom not found in db");

@@ -52,12 +52,12 @@ exports.postMessage = [
             user: req.user.username,
             create_date: Date.now(),
         };
-        const msg = yield message_1.default.create(data);
-        room.messages.push(msg._id);
+        const message = yield message_1.default.create(data);
+        room.messages.push(message._id);
         yield room_1.default.findOneAndUpdate({ _id: room._id }, { messages: room.messages })
             .lean()
             .exec();
-        res.end();
+        res.json({ message: message.toObject() });
     })),
 ];
 function getMessage(req, res, next) {

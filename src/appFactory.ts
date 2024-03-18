@@ -7,6 +7,7 @@ import express, { Application } from "express"
 import cookieParser from "cookie-parser"
 import logger from "morgan"
 import mongoSanitize from "express-mongo-sanitize"
+import cors from 'cors'
 import { Request, Response, NextFunction } from "express"
 import Room from "./models/room"
 import { setObjectIdDocument } from "./routes/utils/objectId"
@@ -35,6 +36,9 @@ function App(): Application {
 
     /* Response compression */
     app.use(compression())
+
+    // Enable CORS
+    app.use(cors())
   }
 
   /* Miscellaneous Setup */

@@ -57,7 +57,7 @@ exports.postUser = [
             username: user,
             roomId: room._id.toString()
         });
-        res.json(token);
+        res.json({ token });
     })),
 ];
 exports.deleteUser = (0, express_async_handler_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {

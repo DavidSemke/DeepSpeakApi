@@ -31,12 +31,13 @@ describe("POST /rooms", () => {
     const urlTrunk = "/rooms";
     // Requirement: All test room topics are unique
     test("All inputs", () => __awaiter(void 0, void 0, void 0, function* () {
-        yield (0, supertest_1.default)(app)
+        const res = yield (0, supertest_1.default)(app)
             .post(urlTrunk)
             .set("Content-Type", "multipart/form-data")
             .field("topic", room.topic)
             .field("max-user-count", room.max_user_count)
             .expect(200);
+        expect(res.body).toHaveProperty("room");
         const rooms = yield room_1.default.find({ topic: room.topic }).lean().exec();
         expect(rooms.length).toBe(2);
     }));

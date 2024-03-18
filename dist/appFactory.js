@@ -12,6 +12,7 @@ const express_1 = __importDefault(require("express"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const morgan_1 = __importDefault(require("morgan"));
 const express_mongo_sanitize_1 = __importDefault(require("express-mongo-sanitize"));
+const cors_1 = __importDefault(require("cors"));
 const room_1 = __importDefault(require("./models/room"));
 const objectId_1 = require("./routes/utils/objectId");
 const rooms_1 = __importDefault(require("./routes/rooms"));
@@ -33,6 +34,8 @@ function App() {
         }));
         /* Response compression */
         app.use((0, compression_1.default)());
+        // Enable CORS
+        app.use((0, cors_1.default)());
     }
     /* Miscellaneous Setup */
     app.use((0, morgan_1.default)("dev"));

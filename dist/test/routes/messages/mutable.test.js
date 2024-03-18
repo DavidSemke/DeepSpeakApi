@@ -82,12 +82,13 @@ describe("POST /rooms/:roomId/messages", () => {
     }));
     test("Post in room at max messages", () => __awaiter(void 0, void 0, void 0, function* () {
         const url = `/rooms/${maxMessagesRoom._id}/messages`;
-        yield (0, supertest_1.default)(app)
+        const res = yield (0, supertest_1.default)(app)
             .post(url)
             .set("Authorization", `Bearer ${maxMessagesRoomAuth.token}`)
             .set("Content-Type", "multipart/form-data")
             .field("content", message.content)
             .expect(200);
+        expect(res.body).toHaveProperty("message");
         const room = yield room_1.default
             .findById(maxMessagesRoom._id)
             .lean()

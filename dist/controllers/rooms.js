@@ -50,8 +50,8 @@ exports.postRoom = [
             users: [],
             messages: [],
         };
-        yield room_1.default.create(data);
-        res.end();
+        const room = yield room_1.default.create(data);
+        res.json({ room: room.toObject() });
     })),
 ];
 function getRoom(req, res, next) {
