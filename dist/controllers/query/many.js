@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const express_validator_1 = require("express-validator");
-function findMany(model, filter = {}) {
+function findMany(model, filter = {}, usePopulation = false) {
     return (0, express_async_handler_1.default)((req, res, next) => __awaiter(this, void 0, void 0, function* () {
         const errors = (0, express_validator_1.validationResult)(req).array();
         if (errors.length) {
@@ -39,8 +39,8 @@ function findMany(model, filter = {}) {
         if (offset) {
             query.skip(offset);
         }
-        if (typeof populate === 'string'
-            && populate in model.schema.paths) {
+        if (usePopulation
+            && typeof populate === 'string') {
             query.populate(populate);
         }
         const documents = yield query.exec();

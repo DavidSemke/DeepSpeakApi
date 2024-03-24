@@ -25,7 +25,7 @@ exports.getManyRooms = [
     ...queryParams_1.roomSort,
     ...queryParams_1.pagination,
     ...queryParams_1.roomPopulation,
-    many_1.default.findMany(room_1.default),
+    many_1.default.findMany(room_1.default, {}, true),
 ];
 exports.postRoom = [
     ...roomBody_1.room,

@@ -12,7 +12,7 @@ export const getManyRooms = [
   ...roomSort,
   ...pagination,
   ...roomPopulation,
-  manyQuery.findMany(Room),
+  manyQuery.findMany(Room, {}, true),
 ]
 
 export const postRoom = [

@@ -2,7 +2,7 @@ import asyncHandler from "express-async-handler"
 import { validationResult } from "express-validator"
 import { Model } from "mongoose"
 
-function findMany(model: Model<any>, filter = {}) {
+function findMany(model: Model<any>, filter = {}, usePopulation=false) {
   return asyncHandler(async (req, res, next) => {
     const errors = validationResult(req).array()
 
@@ -38,8 +38,8 @@ function findMany(model: Model<any>, filter = {}) {
     }
 
     if (
-      typeof populate === 'string'
-      && populate in model.schema.paths
+      usePopulation
+      && typeof populate === 'string'
     ) {
       query.populate(populate)
     }
