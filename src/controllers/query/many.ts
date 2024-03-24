@@ -14,6 +14,7 @@ function findMany(model: Model<any>, filter = {}) {
     const orderBy = req.query["order-by"]
     const limit = Number(req.query["limit"])
     const offset = Number(req.query["offset"])
+    const populate = req.query['populate']
 
     const query = model.find(filter).lean()
 
@@ -34,6 +35,13 @@ function findMany(model: Model<any>, filter = {}) {
 
     if (offset) {
       query.skip(offset)
+    }
+
+    if (
+      typeof populate === 'string'
+      && populate in model.schema.paths
+    ) {
+      query.populate(populate)
     }
 
     const documents = await query.exec()

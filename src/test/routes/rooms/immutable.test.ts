@@ -78,12 +78,23 @@ describe("GET /rooms", () => {
         expect(res.body).toHaveProperty("errors")
       })
     })
+
+    describe("Populate", () => {
+      test("Does not refer to a schema property", async () => {
+        const res = await request(app)
+          .get(`${urlTrunk}?populate=trash`)
+          .expect("Content-Type", /json/)
+          .expect(400)
+
+        expect(res.body).toHaveProperty("errors")
+      })
+    })
   })
 
   // Requirement: rooms must have unique topic values
   test("All params", async () => {
     const limit = 3
-    const url = `${urlTrunk}?order-by=topic&order=desc&limit=${limit}`
+    const url = `${urlTrunk}?order-by=topic&order=desc&limit=${limit}&populate=messages`
     const resNoOffset = await request(app)
       .get(url)
       .expect("Content-Type", /json/)

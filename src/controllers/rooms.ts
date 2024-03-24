@@ -4,13 +4,14 @@ import createDOMPurify from "dompurify"
 import { JSDOM } from "jsdom"
 import { Request, Response, NextFunction } from "express"
 import Room from "../models/room"
-import { roomSort, pagination } from "./validation/queryParams"
+import { roomSort, pagination, roomPopulation } from "./validation/queryParams"
 import { room } from "./validation/roomBody"
 import manyQuery from "./query/many"
 
 export const getManyRooms = [
   ...roomSort,
   ...pagination,
+  ...roomPopulation,
   manyQuery.findMany(Room),
 ]
 

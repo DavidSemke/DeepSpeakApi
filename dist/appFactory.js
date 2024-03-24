@@ -48,11 +48,11 @@ function App() {
         req.documents = {};
         next();
     });
-    const setPopulateRoom = (0, objectId_1.setObjectIdDocument)("params", "roomId", room_1.default, ["messages"]);
+    const setNoPopulateRoom = (0, objectId_1.setObjectIdDocument)("params", "roomId", room_1.default);
     // Make sure less specific routes come after more specific
     // E.g. /rooms must come after all of its extensions
-    app.use("/rooms/:roomId/messages", setPopulateRoom, messages_1.default);
-    app.use("/rooms/:roomId/users", setPopulateRoom, users_1.default);
+    app.use("/rooms/:roomId/messages", setNoPopulateRoom, messages_1.default);
+    app.use("/rooms/:roomId/users", setNoPopulateRoom, users_1.default);
     app.use("/rooms", rooms_1.default);
     /* Error Handling */
     app.use(function (req, res, next) {

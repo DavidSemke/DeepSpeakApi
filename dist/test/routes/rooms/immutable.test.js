@@ -74,11 +74,20 @@ describe("GET /rooms", () => {
                 expect(res.body).toHaveProperty("errors");
             }));
         });
+        describe("Populate", () => {
+            test("Does not refer to a schema property", () => __awaiter(void 0, void 0, void 0, function* () {
+                const res = yield (0, supertest_1.default)(app)
+                    .get(`${urlTrunk}?populate=trash`)
+                    .expect("Content-Type", /json/)
+                    .expect(400);
+                expect(res.body).toHaveProperty("errors");
+            }));
+        });
     });
     // Requirement: rooms must have unique topic values
     test("All params", () => __awaiter(void 0, void 0, void 0, function* () {
         const limit = 3;
-        const url = `${urlTrunk}?order-by=topic&order=desc&limit=${limit}`;
+        const url = `${urlTrunk}?order-by=topic&order=desc&limit=${limit}&populate=messages`;
         const resNoOffset = yield (0, supertest_1.default)(app)
             .get(url)
             .expect("Content-Type", /json/)

@@ -3,8 +3,12 @@ import { Model } from "mongoose"
 import Message from "../../models/message"
 import Room from "../../models/room"
 
-const notStringErrMsg = (param: string) => {
-  return `Query param '${param}' must be a string`
+const notTypeErrMsg = (param: string, type: string) => {
+  return `Query param '${param}' must be a ${type}`
+}
+
+const notSchemaPropErrMsg = (param: string, modelName: string) => {
+  return `Query param '${param}' does not ref a prop of schema '${modelName}'`
 }
 
 function validateSort(model: Model<any>) {
@@ -14,18 +18,18 @@ function validateSort(model: Model<any>) {
     query("order-by")
       .optional()
       .isString()
-      .withMessage(notStringErrMsg("order-by"))
+      .withMessage(notTypeErrMsg("order-by", 'string'))
       .trim()
       .custom((value) => {
         return value in model.schema.paths
       })
       .withMessage(
-        `Query param 'order-by' does not ref a prop of schema '${model.modelName}'`,
+        notSchemaPropErrMsg('order-by', model.modelName)
       ),
     query("order")
       .optional()
       .isString()
-      .withMessage(notStringErrMsg("order"))
+      .withMessage(notTypeErrMsg("order", 'string'))
       .trim()
       .custom((value, { req }) => {
         return req.query && req.query["order-by"] !== undefined
@@ -48,7 +52,7 @@ function validatePagination() {
     query("limit")
       .optional()
       .isString()
-      .withMessage(notStringErrMsg("limit"))
+      .withMessage(notTypeErrMsg("limit", 'string'))
       .trim()
       .custom((value) => {
         return onlyDigitsRegex.test(value)
@@ -57,7 +61,7 @@ function validatePagination() {
     query("offset")
       .optional()
       .isString()
-      .withMessage(notStringErrMsg("offset"))
+      .withMessage(notTypeErrMsg("offset", 'string'))
       .trim()
       .custom((value) => {
         return onlyDigitsRegex.test(value)
@@ -66,8 +70,25 @@ function validatePagination() {
   ]
 }
 
+function validatePopulation(model: Model<any>) {
+  return [
+    query("populate")
+      .optional()
+      .isString()
+      .withMessage(notTypeErrMsg("offset", 'string'))
+      .trim()
+      .custom((value) => {
+        return value in model.schema.paths
+      })
+      .withMessage((value) =>
+        notSchemaPropErrMsg(value, model.modelName)
+      ),
+  ]
+}
+
 const roomSort = validateSort(Room)
 const messageSort = validateSort(Message)
 const pagination = validatePagination()
+const roomPopulation = validatePopulation(Room)
 
-export { roomSort, messageSort, pagination }
+export { roomSort, messageSort, pagination, roomPopulation }

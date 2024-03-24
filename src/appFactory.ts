@@ -54,14 +54,12 @@ function App(): Application {
     next()
   })
 
-  const setPopulateRoom = setObjectIdDocument(
-    "params", "roomId", Room, ["messages"]
-  )
+  const setNoPopulateRoom = setObjectIdDocument("params", "roomId", Room)
 
   // Make sure less specific routes come after more specific
   // E.g. /rooms must come after all of its extensions
-  app.use("/rooms/:roomId/messages", setPopulateRoom, messagesRouter)
-  app.use("/rooms/:roomId/users", setPopulateRoom, usersRouter)
+  app.use("/rooms/:roomId/messages", setNoPopulateRoom, messagesRouter)
+  app.use("/rooms/:roomId/users", setNoPopulateRoom, usersRouter)
   app.use("/rooms", roomsRouter)
 
   /* Error Handling */
