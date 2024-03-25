@@ -41,7 +41,7 @@ function getData(messages) {
                 users.push(msg.user);
             }
         }
-        return Object.assign(Object.assign({}, data), { create_date: createDate, delete_date: deleteDate, max_user_count: Math.max(users.length + (index % 2), 2), users, deleted_users: ['deletedUser' + index], messages: messageSlice.map((msg) => msg._id) });
+        return Object.assign(Object.assign({}, data), { create_date: createDate, delete_date: deleteDate, max_user_count: Math.min(users.length + index * 2, room_1.default.MAX_USER_COUNT_LENGTH.max), users, deleted_users: ['deletedUser' + index], messages: messageSlice.map((msg) => msg._id) });
     });
     return completeData;
 }

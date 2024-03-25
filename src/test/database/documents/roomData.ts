@@ -48,7 +48,10 @@ function getData(messages: HydratedDocument<MessageType>[]): RoomType[] {
       ...data,
       create_date: createDate,
       delete_date: deleteDate,
-      max_user_count: Math.max(users.length + (index % 2), 2),
+      max_user_count: Math.min(
+        users.length + index*2, 
+        consts.MAX_USER_COUNT_LENGTH.max
+      ),
       users,
       deleted_users: ['deletedUser' + index],
       messages: messageSlice.map((msg) => msg._id),
