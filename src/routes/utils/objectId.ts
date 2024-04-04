@@ -1,8 +1,14 @@
 import { RequestHandler } from "express"
 import asyncHandler from "express-async-handler"
-import { param, body } from "express-validator"
-import { validationResult } from "express-validator"
+import { 
+  param, 
+  body, 
+  ValidationChain, 
+  validationResult 
+} from "express-validator"
 import { Model } from "mongoose"
+import type { Validator } from '../../types/validation'
+
 
 function setObjectIdDocument(
   reqObject: string,
@@ -10,7 +16,7 @@ function setObjectIdDocument(
   model: Model<any>,
   populatePaths: any[] = [],
 ): RequestHandler[] {
-  let reqObjectValidator
+  let reqObjectValidator: Validator
 
   if (reqObject === "params") {
     reqObjectValidator = param
@@ -21,16 +27,8 @@ function setObjectIdDocument(
   }
 
   return [
-    reqObjectValidator(reqObjectKey)
-      .isString()
-      .withMessage("ObjectId must be a string")
-      .trim()
-      .custom((value) => {
-        // Must be a 24-character, lowercase, hexadecimal string
-        const hexRegex = /^[a-f\d]{24}$/
-        return hexRegex.test(value)
-      })
-      .withMessage("Invalid ObjectId format"),
+    objectIdValidation(reqObjectValidator, reqObjectKey),
+
     asyncHandler(async (req, res, next) => {
       const errors = validationResult(req).array()
 
@@ -62,4 +60,20 @@ function setObjectIdDocument(
   ]
 }
 
-export { setObjectIdDocument }
+function objectIdValidation(
+  reqObjectValidator: Validator, 
+  reqObjectKey: string
+): ValidationChain {
+  return reqObjectValidator(reqObjectKey)
+    .isString()
+    .withMessage("ObjectId must be a string")
+    .trim()
+    .custom((value) => {
+      // Must be a 24-character, lowercase, hexadecimal string
+      const hexRegex = /^[a-f\d]{24}$/
+      return hexRegex.test(value)
+    })
+    .withMessage("Invalid ObjectId format")
+}
+
+export { setObjectIdDocument, objectIdValidation }

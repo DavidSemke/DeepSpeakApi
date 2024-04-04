@@ -8,7 +8,10 @@ const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 function generateAuthToken(user, hoursToLive = 24) {
-    return jsonwebtoken_1.default.sign(user, process.env.TOKEN_SECRET, { expiresIn: hoursToLive + 'h' });
+    if (process.env.NODE_ENV === 'production') {
+        return jsonwebtoken_1.default.sign(user, process.env.TOKEN_SECRET, { expiresIn: hoursToLive + 'h' });
+    }
+    return jsonwebtoken_1.default.sign(user, process.env.TOKEN_SECRET);
 }
 exports.generateAuthToken = generateAuthToken;
 function authenticateToken(req, res, next) {

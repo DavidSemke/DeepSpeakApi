@@ -36,10 +36,10 @@ function App(): Application {
 
     /* Response compression */
     app.use(compression())
-
-    // Enable CORS
-    app.use(cors())
   }
+
+  // Enable CORS
+  app.use(cors())
 
   /* Miscellaneous Setup */
   app.use(logger("dev"))

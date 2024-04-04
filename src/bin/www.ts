@@ -7,6 +7,7 @@
 import App from "../appFactory"
 import debug from "debug"
 import http from "http"
+import { deploySockets } from "../sockets/setup"
 
 const app = App()
 
@@ -18,10 +19,11 @@ const port = normalizePort(process.env.PORT || "3000")
 app.set("port", port)
 
 /**
- * Create HTTP server.
+ * Create HTTP server and deploy sockets.
  */
 
 const server = http.createServer(app)
+deploySockets(server)
 
 /**
  * Listen on provided port, on all network interfaces.

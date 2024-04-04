@@ -8,10 +8,17 @@ import { UserType } from '../types/model'
 export function generateAuthToken(
   user: UserType, hoursToLive=24
 ): string {
+    if (process.env.NODE_ENV === 'production') {
+        return jwt.sign(
+            user, 
+            process.env.TOKEN_SECRET as string,
+            { expiresIn: hoursToLive + 'h' }
+          )
+    }
+
     return jwt.sign(
         user, 
         process.env.TOKEN_SECRET as string,
-        { expiresIn: hoursToLive + 'h' }
       )
 }
 
