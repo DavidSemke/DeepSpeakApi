@@ -42,8 +42,6 @@ export function deploySockets(server: http.Server) {
         })
 
         socket.on('leave-room', async ({ roomId, update }) => {
-            socket.leave(roomId)
-
             if (update) {
                 const room = await Room
                     .findById(roomId)
@@ -53,6 +51,8 @@ export function deploySockets(server: http.Server) {
 
                 io.to(roomId).emit('room-update', { room })
             }
+
+            socket.leave(roomId)
         })
     })
 }
