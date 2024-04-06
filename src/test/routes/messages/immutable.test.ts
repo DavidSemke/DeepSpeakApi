@@ -130,10 +130,38 @@ describe("GET /rooms/:roomId/messages", () => {
         expect(res.body).toHaveProperty("errors")
       })
     })
+
+    describe("Ids", () => {
+      test("Contains invalid object ids", async () => {
+        const res = await request(app)
+          .get(`${urlTrunk}?ids=a,b,c`)
+          .expect("Content-Type", /json/)
+          .expect(400)
+
+        expect(res.body).toHaveProperty("errors")
+      })
+
+      test("Contains object ids not from room messages", async () => {
+        const messageIds = [
+          fewMessagesRoom.messages[0]._id,
+          maxMessagesRoom.messages[0]._id
+        ]
+        const res = await request(app)
+          .get(`${urlTrunk}?ids=${messageIds.join(',')}`)
+          .expect("Content-Type", /json/)
+          .expect(200)
+        
+        const messages = res.body["message_collection"]
+        // One message id belongs to room, the other does not
+        expect(messages.length).toBe(1)
+        expect(messages[0]._id.toString())
+          .toBe(fewMessagesRoom.messages[0]._id.toString())
+      })
+    })
   })
 
   // Requirement: messages must have unique content values
-  test("All params", async () => {
+  test("All params except ids", async () => {
     const limit = 3
     const url = `${urlTrunk}?order-by=content&order=desc&limit=${limit}`
     const resNoOffset = await request(app)
@@ -172,6 +200,20 @@ describe("GET /rooms/:roomId/messages", () => {
         expect(oldMsg).not.toEqual(newMsg)
       }
     }
+  })
+
+  test('Ids param', async () => {
+    const urlTrunk = `/rooms/${maxMessagesRoom._id}/messages`
+    // Have only one id in ids; all other ids should be filtered
+    const ids = [maxMessagesRoom.messages[0]._id]
+    const res = await request(app)
+      .get(`${urlTrunk}?ids=${ids.join(',')}`)
+      .expect("Content-Type", /json/)
+      .expect(200)
+
+    const messages = res.body["message_collection"]
+    expect(messages.length).toBe(1)
+    expect(messages[0]._id.toString()).toBe(ids[0].toString())
   })
 })
 

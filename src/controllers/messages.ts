@@ -6,24 +6,21 @@ import { Request, Response, NextFunction } from "express"
 import Message from "../models/message"
 import Room from "../models/room"
 import roomConsts from "../models/constants/room"
-import { messageSort, pagination } from "./validation/queryParams"
-import { message } from "./validation/messageBody"
 import manyQuery from "./query/many"
 import { Types } from "mongoose"
 
-export const getManyMessages = [
-  ...messageSort,
-  ...pagination,
-  (req: Request, res: Response, next: NextFunction) => {
-    const room = req.documents.roomId
-    manyQuery.findMany(Message, { _id: { $in: room.messages } })(req, res, next)
-  },
-]
+export const getManyMessages = (
+  req: Request, res: Response, next: NextFunction
+) => {
+  const room = req.documents.roomId
+  manyQuery.findMany(
+    Message, 
+    { _id: { $in: room.messages } }
+  )(req, res, next)
+}
 
-export const postMessage = [
-  ...message,
 
-  asyncHandler(async (req, res, next) => {
+export const postMessage = asyncHandler(async (req, res, next) => {
     const errors = validationResult(req).array()
 
     if (errors.length) {
@@ -56,15 +53,14 @@ export const postMessage = [
       .exec()
 
     res.json({ message: message.toObject() })
-  }),
-]
+})
+
 
 export function getMessage(req: Request, res: Response, next: NextFunction) {
   const room = req.documents.roomId
   const message = req.documents.messageId
-  const roomMsgStrIds = room.messages.map((msg: Types.ObjectId) =>
-    msg.toString(),
-  )
+  const roomMsgStrIds = room.messages
+    .map((msg: Types.ObjectId) => msg.toString())
 
   if (!roomMsgStrIds.includes(message._id.toString())) {
     const err = new Error("Message does not belong to room")

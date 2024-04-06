@@ -4,21 +4,11 @@ import createDOMPurify from "dompurify"
 import { JSDOM } from "jsdom"
 import { Request, Response, NextFunction } from "express"
 import Room from "../models/room"
-import { roomSort, pagination, roomPopulation } from "./validation/queryParams"
-import { room } from "./validation/roomBody"
 import manyQuery from "./query/many"
 
-export const getManyRooms = [
-  ...roomSort,
-  ...pagination,
-  ...roomPopulation,
-  manyQuery.findMany(Room, {}, true),
-]
+export const getManyRooms = manyQuery.findMany(Room, {}, true)
 
-export const postRoom = [
-  ...room,
-
-  asyncHandler(async (req, res, next) => {
+export const postRoom = asyncHandler(async (req, res, next) => {
     const errors = validationResult(req).array()
 
     if (errors.length) {
@@ -48,8 +38,8 @@ export const postRoom = [
     const room = await Room.create(data)
 
     res.json({ room: room.toObject() })
-  }),
-]
+})
+
 
 export function getRoom(req: Request, res: Response, next: NextFunction) {
   res.json({ room: req.documents.roomId })

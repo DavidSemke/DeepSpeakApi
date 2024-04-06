@@ -2,7 +2,7 @@ import { body } from "express-validator"
 import { invalidLength } from "./errorMessage"
 import consts from "../../models/constants/room"
 
-const room = [
+const roomValidation = [
   body("topic")
     .isString()
     .withMessage("Topic must be a string")
@@ -26,4 +26,4 @@ const room = [
     }),
 ]
 
-export { room }
+export { roomValidation }

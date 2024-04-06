@@ -3,10 +3,10 @@ import asyncHandler from "express-async-handler"
 import { 
   param, 
   body, 
-  ValidationChain, 
   validationResult 
 } from "express-validator"
 import { Model } from "mongoose"
+import { objectIdValidation } from "../validation/urlParams"
 import type { Validator } from '../../types/validation'
 
 
@@ -60,20 +60,4 @@ function setObjectIdDocument(
   ]
 }
 
-function objectIdValidation(
-  reqObjectValidator: Validator, 
-  reqObjectKey: string
-): ValidationChain {
-  return reqObjectValidator(reqObjectKey)
-    .isString()
-    .withMessage("ObjectId must be a string")
-    .trim()
-    .custom((value) => {
-      // Must be a 24-character, lowercase, hexadecimal string
-      const hexRegex = /^[a-f\d]{24}$/
-      return hexRegex.test(value)
-    })
-    .withMessage("Invalid ObjectId format")
-}
-
-export { setObjectIdDocument, objectIdValidation }
+export { setObjectIdDocument }

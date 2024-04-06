@@ -2,7 +2,7 @@ import { body } from "express-validator"
 import { invalidLength } from "./errorMessage"
 import consts from "../../models/constants/message"
 
-const message = [
+const messageValidation = [
   body("content")
     .isString()
     .withMessage("Content must be a string")
@@ -13,4 +13,4 @@ const message = [
     }),
 ]
 
-export { message }
+export { messageValidation }

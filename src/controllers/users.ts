@@ -4,13 +4,10 @@ import createDOMPurify from "dompurify"
 import { JSDOM } from "jsdom"
 import { generateAuthToken } from "../utils/auth"
 import { Request, Response, NextFunction } from "express"
-import { user } from "./validation/userBody"
 import Room from "../models/room"
 
-export const postUser = [
-  ...user,
-
-  asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const postUser = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req).array()
 
     if (errors.length) {
@@ -61,8 +58,9 @@ export const postUser = [
     )
 
     res.json({ token })
-  }),
-]
+  }
+)
+
 
 export const deleteUser = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {

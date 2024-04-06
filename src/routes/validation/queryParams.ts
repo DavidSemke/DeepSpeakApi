@@ -2,6 +2,8 @@ import { query } from "express-validator"
 import { Model } from "mongoose"
 import Message from "../../models/message"
 import Room from "../../models/room"
+import { plainObjectIdValidation
+ } from "./urlParams"
 
 const notTypeErrMsg = (param: string, type: string) => {
   return `Query param '${param}' must be a ${type}`
@@ -42,7 +44,7 @@ function validateSort(model: Model<any>) {
   ]
 }
 
-function validatePagination() {
+function validatepaginationValidation() {
   const notOnlyDigitsErrMsg = (param: string) => {
     return `Query param '${param}' must only consist of digits`
   }
@@ -86,9 +88,38 @@ function validatePopulation(model: Model<any>) {
   ]
 }
 
-const roomSort = validateSort(Room)
-const messageSort = validateSort(Message)
-const pagination = validatePagination()
-const roomPopulation = validatePopulation(Room)
+function validateIds() {
+  return [
+    query("ids")
+      .optional()
+      .isString()
+      .withMessage(notTypeErrMsg("ids", 'string'))
+      .trim()
+      .custom((value) => {
+        const ids = value.split(',')
 
-export { roomSort, messageSort, pagination, roomPopulation }
+        for (const id of ids) {
+          if (plainObjectIdValidation(id).length) {
+            return false
+          }
+        }
+
+        return true
+      })
+      .withMessage('Invalid ObjectId format')
+  ]
+}
+
+const roomSortValidation = validateSort(Room)
+const messageSortValidation = validateSort(Message)
+const paginationValidation = validatepaginationValidation()
+const roomPopulationValidation = validatePopulation(Room)
+const idValidation = validateIds()
+
+export { 
+  roomSortValidation, 
+  messageSortValidation, 
+  paginationValidation, 
+  roomPopulationValidation,
+  idValidation
+}

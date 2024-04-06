@@ -2,7 +2,7 @@ import { body } from "express-validator"
 import { invalidLength } from "./errorMessage"
 import consts from "../../models/constants/user"
 
-const user = [
+const userValidation = [
   body("user")
     .isString()
     .withMessage("User must be a string")
@@ -13,4 +13,4 @@ const user = [
     }),
 ]
 
-export { user }
+export { userValidation }

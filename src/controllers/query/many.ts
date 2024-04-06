@@ -2,7 +2,18 @@ import asyncHandler from "express-async-handler"
 import { validationResult } from "express-validator"
 import { Model } from "mongoose"
 
-function findMany(model: Model<any>, filter = {}, usePopulation=false) {
+
+type FindManyFilter = {
+  _id?: {
+    $in: string[]
+  }
+}
+
+function findMany(
+  model: Model<any>, 
+  filter: FindManyFilter = {}, 
+  usePopulation=false
+) {
   return asyncHandler(async (req, res, next) => {
     const errors = validationResult(req).array()
 
@@ -15,6 +26,28 @@ function findMany(model: Model<any>, filter = {}, usePopulation=false) {
     const limit = Number(req.query["limit"])
     const offset = Number(req.query["offset"])
     const populate = req.query['populate']
+    const queryIds = req.query['ids']
+
+    if (typeof queryIds === 'string') {
+      const queryIdArray = queryIds.split(',')
+
+      // If filter._id.$in already exists, ids from query
+      // must form a subset (otherwise they are ignored)
+      if (filter._id?.$in !== undefined) {
+        const inArray = filter._id?.$in
+          .map(id => id.toString())
+        const subsetInArray = inArray
+          .filter((id) => queryIdArray.includes(id))
+
+        filter._id.$in = subsetInArray
+      }
+      else if (filter._id !== undefined) {
+        filter._id.$in = queryIdArray
+      }
+      else {
+        filter._id = { $in: queryIdArray }
+      }
+    }
 
     const query = model.find(filter).lean()
 
