@@ -62,11 +62,11 @@ function findMany(
       query.sort(sortStr)
     }
 
-    if (limit) {
+    if (typeof limit === 'number' && !isNaN(limit)) {
       query.limit(limit)
     }
 
-    if (offset) {
+    if (typeof offset === 'number' && !isNaN(offset)) {
       query.skip(offset)
     }
 

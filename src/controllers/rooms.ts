@@ -6,7 +6,12 @@ import { Request, Response, NextFunction } from "express"
 import Room from "../models/room"
 import manyQuery from "./query/many"
 
-export const getManyRooms = manyQuery.findMany(Room, {}, true)
+
+export const getManyRooms = (
+  req: Request, res: Response, next: NextFunction
+) => {
+  manyQuery.findMany(Room, {}, true)(req, res, next)
+}
 
 export const postRoom = asyncHandler(async (req, res, next) => {
     const errors = validationResult(req).array()
@@ -41,7 +46,9 @@ export const postRoom = asyncHandler(async (req, res, next) => {
 })
 
 
-export function getRoom(req: Request, res: Response, next: NextFunction) {
+export function getRoom(
+  req: Request, res: Response, next: NextFunction
+) {
   res.json({ room: req.documents.roomId })
 }
 
