@@ -30,6 +30,13 @@ afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
 }));
 describe("GET /rooms", () => {
     const urlTrunk = "/rooms";
+    let otherRoom;
+    beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
+        otherRoom = (yield room_1.default
+            .findOne({ _id: { $ne: room._id } })
+            .lean()
+            .exec());
+    }));
     describe("Invalid query params", () => {
         describe("Order-by", () => {
             test("Does not ref Room schema prop", () => __awaiter(void 0, void 0, void 0, function* () {
@@ -83,11 +90,24 @@ describe("GET /rooms", () => {
                 expect(res.body).toHaveProperty("errors");
             }));
         });
+        describe("Ids", () => {
+            test("Contains invalid object ids", () => __awaiter(void 0, void 0, void 0, function* () {
+                const res = yield (0, supertest_1.default)(app)
+                    .get(`${urlTrunk}?ids=a,b,c`)
+                    .expect("Content-Type", /json/)
+                    .expect(400);
+                expect(res.body).toHaveProperty("errors");
+            }));
+        });
     });
     // Requirement: rooms must have unique topic values
-    test("All params", () => __awaiter(void 0, void 0, void 0, function* () {
+    test("All params except ids", () => __awaiter(void 0, void 0, void 0, function* () {
         const limit = 3;
-        const url = `${urlTrunk}?order-by=topic&order=desc&limit=${limit}&populate=messages`;
+        const url = `${urlTrunk}?`
+            + `order-by=topic`
+            + `&order=desc`
+            + `&limit=${limit}`
+            + `&populate=messages`;
         const resNoOffset = yield (0, supertest_1.default)(app)
             .get(url)
             .expect("Content-Type", /json/)
@@ -111,6 +131,21 @@ describe("GET /rooms", () => {
             for (const oldRoom of rooms) {
                 expect(oldRoom).not.toEqual(newRoom);
             }
+        }
+    }));
+    test('Ids param', () => __awaiter(void 0, void 0, void 0, function* () {
+        const ids = [
+            room._id.toString(),
+            otherRoom._id.toString()
+        ];
+        const res = yield (0, supertest_1.default)(app)
+            .get(`${urlTrunk}?ids=${ids.join(',')}`)
+            .expect("Content-Type", /json/)
+            .expect(200);
+        const resRooms = res.body["room_collection"];
+        expect(resRooms.length).toBe(ids.length);
+        for (const resRoom of resRooms) {
+            expect(ids.includes(resRoom._id.toString())).toBe(true);
         }
     }));
 });

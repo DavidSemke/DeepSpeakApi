@@ -12,9 +12,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.objectIdValidation = exports.setObjectIdDocument = void 0;
+exports.setObjectIdDocument = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const express_validator_1 = require("express-validator");
+const urlParams_1 = require("../validation/urlParams");
 function setObjectIdDocument(reqObject, reqObjectKey, model, populatePaths = []) {
     let reqObjectValidator;
     if (reqObject === "params") {
@@ -27,7 +28,7 @@ function setObjectIdDocument(reqObject, reqObjectKey, model, populatePaths = [])
         throw new Error("Param reqObject must be in ['params, body']");
     }
     return [
-        objectIdValidation(reqObjectValidator, reqObjectKey),
+        (0, urlParams_1.objectIdValidation)(reqObjectValidator, reqObjectKey),
         (0, express_async_handler_1.default)((req, res, next) => __awaiter(this, void 0, void 0, function* () {
             const errors = (0, express_validator_1.validationResult)(req).array();
             if (errors.length) {
@@ -51,16 +52,3 @@ function setObjectIdDocument(reqObject, reqObjectKey, model, populatePaths = [])
     ];
 }
 exports.setObjectIdDocument = setObjectIdDocument;
-function objectIdValidation(reqObjectValidator, reqObjectKey) {
-    return reqObjectValidator(reqObjectKey)
-        .isString()
-        .withMessage("ObjectId must be a string")
-        .trim()
-        .custom((value) => {
-        // Must be a 24-character, lowercase, hexadecimal string
-        const hexRegex = /^[a-f\d]{24}$/;
-        return hexRegex.test(value);
-    })
-        .withMessage("Invalid ObjectId format");
-}
-exports.objectIdValidation = objectIdValidation;

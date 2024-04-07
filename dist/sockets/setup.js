@@ -48,7 +48,6 @@ function deploySockets(server) {
             }
         }));
         socket.on('leave-room', ({ roomId, update }) => __awaiter(this, void 0, void 0, function* () {
-            socket.leave(roomId);
             if (update) {
                 const room = yield room_1.default
                     .findById(roomId)
@@ -57,6 +56,7 @@ function deploySockets(server) {
                     .exec();
                 io.to(roomId).emit('room-update', { room });
             }
+            socket.leave(roomId);
         }));
     });
 }
