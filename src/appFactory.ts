@@ -39,7 +39,9 @@ function App(): Application {
   }
 
   // Enable CORS
-  app.use(cors())
+  app.use(cors({
+    origin: 'https://davidsemke.github.io/DeepSpeak/'
+  }))
 
   /* Miscellaneous Setup */
   app.use(logger("dev"))
