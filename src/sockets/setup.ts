@@ -1,11 +1,5 @@
 import http from "http"
 import { Server } from "socket.io"
-// import { 
-//     body,
-//     validationResult 
-//   } from "express-validator"
-//   import { Request, Response, NextFunction } from "express"
-// import { objectIdValidation } from "../routes/utils/objectId"
 import Room from "../models/room"
 
 
