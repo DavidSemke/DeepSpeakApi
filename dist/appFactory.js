@@ -36,7 +36,9 @@ function App() {
         app.use((0, compression_1.default)());
     }
     // Enable CORS
-    app.use((0, cors_1.default)());
+    app.use((0, cors_1.default)({
+        origin: 'https://davidsemke.github.io/DeepSpeak/'
+    }));
     /* Miscellaneous Setup */
     app.use((0, morgan_1.default)("dev"));
     app.use(express_1.default.json());

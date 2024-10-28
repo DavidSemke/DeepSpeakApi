@@ -14,12 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deploySockets = void 0;
 const socket_io_1 = require("socket.io");
-// import { 
-//     body,
-//     validationResult 
-//   } from "express-validator"
-//   import { Request, Response, NextFunction } from "express"
-// import { objectIdValidation } from "../routes/utils/objectId"
 const room_1 = __importDefault(require("../models/room"));
 function deploySockets(server) {
     const io = new socket_io_1.Server(server, {
